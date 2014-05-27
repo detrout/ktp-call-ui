@@ -58,6 +58,8 @@ struct CallWindow::Private
     KToggleAction *muteAction;
     KAction *holdAction;
     KAction *hangupAction;
+    KAction *goToSystemTrayAction;//added later
+    KAction *restoreAction; //added later
 
     VideoDisplayFlags currentVideoDisplayState;
     VideoContentHandler *videoContentHandler;
@@ -96,11 +98,19 @@ CallWindow::CallWindow(const Tp::CallChannelPtr & callChannel)
                 "</body></html>")
                 .arg(remoteMember->avatarData().fileName, remoteMember->alias()));
         setWindowTitle(i18n("Call with %1", remoteMember->alias()));
+
+
+    //-----------------------------------
+    setupSystemTray();
+    //-----------------------------------
+
+
     }
 }
 
 CallWindow::~CallWindow()
 {
+    delete systemtrayicon;
     kDebug() << "Deleting CallWindow";
     delete d;
 }
@@ -381,17 +391,31 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
 
 void CallWindow::setupActions()
 {
-     //TODO implement this feature
     d->showMyVideoAction = new KToggleAction(i18nc("@action", "Show my video"), this);
     d->showMyVideoAction->setIcon(KIcon("camera-web"));
-    d->showMyVideoAction->setEnabled(false);
+    d->showMyVideoAction->setEnabled(true);
+    connect(d->showMyVideoAction, SIGNAL(toggled(bool)), this,SLOT(toggleShowMyVideo(bool)));
     actionCollection()->addAction("showMyVideo", d->showMyVideoAction);
 
     d->showDtmfAction = new KToggleAction(i18nc("@action", "Show dialpad"), this);
     d->showDtmfAction->setIcon(KIcon("phone"));
-    d->showDtmfAction->setEnabled(false);
+    d->showDtmfAction->setEnabled(false);//IT'S IMPLEMENTED BUT NOT ENABLED
     connect(d->showDtmfAction, SIGNAL(toggled(bool)), SLOT(toggleDtmf(bool)));
     actionCollection()->addAction("showDtmf", d->showDtmfAction);
+
+    //Added later
+    d->goToSystemTrayAction = new KAction(i18nc("@action", "Hide window"), this);
+    //d->showMyVideoAction->setIcon(KIcon("camera-web"));
+    d->goToSystemTrayAction->setEnabled(true);
+    connect(d->goToSystemTrayAction, SIGNAL(triggered(bool)), this, SLOT(hide()));
+    actionCollection()->addAction("goToSystemTray", d->goToSystemTrayAction);
+
+    //Added later
+    d->restoreAction= new KAction(i18nc("@action", "Restore window"), this);
+    //d->showMyVideoAction->setIcon(KIcon("camera-web"));
+    d->restoreAction->setEnabled(true);
+    connect(d->restoreAction, SIGNAL(triggered(bool)), this, SLOT(show()));
+    actionCollection()->addAction("restore", d->restoreAction);
 
     //TODO implement this feature
     d->sendVideoAction = new KToggleAction(i18nc("@action", "Send video"), this);
@@ -414,6 +438,7 @@ void CallWindow::setupActions()
     d->hangupAction = new KAction(KIcon("call-stop"), i18nc("@action", "Hangup"), this);
     connect(d->hangupAction, SIGNAL(triggered()), SLOT(hangup()));
     actionCollection()->addAction("hangup", d->hangupAction);
+
 }
 
 void CallWindow::checkEnableDtmf()
@@ -459,6 +484,7 @@ void CallWindow::hangup()
 
 void CallWindow::closeEvent(QCloseEvent *event)
 {
+    systemtrayicon->activateNext(false);
     if (!d->callEnded) {
         kDebug() << "Ignoring close event";
         hangup();
@@ -536,4 +562,65 @@ void CallWindow::onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStat
     default:
         d->statusArea->setMessage(StatusArea::Error, i18nc("@info:error", "Internal Error"));
     }
+}
+
+
+//______________________________________________________________________
+
+
+
+void CallWindow::setupSystemTray()
+{
+    KMenu *trayIconMenu=new KMenu();
+    systemtrayicon=new SystemTrayIcon(this);
+
+
+    //Save the title
+    trayIconMenu->setTitle(windowTitle());
+
+    //Show the title
+    trayIconMenu->addAction(windowTitle());
+    trayIconMenu->addSeparator();
+
+    //Actions
+    trayIconMenu->addAction(d->hangupAction);
+    trayIconMenu->addAction(d->sendVideoAction);
+    trayIconMenu->addAction(d->muteAction);
+    trayIconMenu->addAction(d->restoreAction);
+    trayIconMenu->addAction(KStandardAction::close(this, SLOT(close()), actionCollection()));
+
+    systemtrayicon->setAssociatedWidget(this);
+
+    //Restore when left click
+    connect(systemtrayicon, SIGNAL(activateRequested(bool,QPoint)), this, SLOT(show()));
+
+    systemtrayicon->setContextMenu(trayIconMenu);
+}
+
+void CallWindow::toggleShowMyVideo(bool checked)
+{
+
+    if(checked)
+    {
+    d->ui.videoPreviewWidget->hide();
+    d->ui.videoWidget->repaint();
+    } else{
+    d->ui.videoPreviewWidget->show();
+    }
+
+}
+
+void CallWindow::showEvent(QShowEvent* event)
+{
+    event->accept();
+    systemtrayicon->setStatus(KStatusNotifierItem::Passive);
+
+}
+void CallWindow::hideEvent(QHideEvent* event)
+{
+    QApplication::processEvents();
+    if(isHidden()){
+        systemtrayicon->show();
+    }
+    event->accept();
 }

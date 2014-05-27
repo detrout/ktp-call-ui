@@ -23,6 +23,9 @@
 #include <KXmlGuiWindow>
 #include <QGst/Global>
 
+#include "systemtray-icon.h"
+
+
 class CallContentHandler;
 
 class CallWindow : public KXmlGuiWindow
@@ -65,17 +68,32 @@ private:
 private Q_SLOTS:
     void toggleDtmf(bool checked);
     void toggleMute(bool checked);
+    void toggleShowMyVideo(bool checked); //new slot
     void hangup();
     void hold();
     void holdOperationFinished(Tp::PendingOperation *operation);
     void onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStateReason reason);
 
+
 protected:
     virtual void closeEvent(QCloseEvent *event);
+    virtual void hideEvent(QHideEvent *event);
+    virtual void showEvent(QShowEvent *event);
 
 private:
     struct Private;
     Private *const d;
+
+
+private: //TrayIcon Stuff:
+    SystemTrayIcon* systemtrayicon;
+    void setupSystemTray();
+
 };
 
 #endif
+
+
+/*
+ * This have been edited by Ekaitz Zárraga
+ */
