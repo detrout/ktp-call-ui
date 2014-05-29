@@ -67,8 +67,8 @@ private:
 
 private Q_SLOTS:
     void toggleDtmf(bool checked);
+    void toggleShowMyVideo(bool checked);
     void toggleMute(bool checked);
-    void toggleShowMyVideo(bool checked); //new slot
     void hangup();
     void hold();
     void holdOperationFinished(Tp::PendingOperation *operation);
@@ -85,15 +85,10 @@ private:
     Private *const d;
 
 
-private: //TrayIcon Stuff:
+private:
     SystemTrayIcon* systemtrayicon;
     void setupSystemTray();
 
 };
 
 #endif
-
-
-/*
- * This have been edited by Ekaitz Zárraga
- */

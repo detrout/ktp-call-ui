@@ -1,27 +1,42 @@
+/*
+    Copyright 2014  Ekaitz Zárraga <ekaitzzarraga@gmail.com>
+
+    This library is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 2.1 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "systemtray-icon.h"
 
 
+
 SystemTrayIcon::SystemTrayIcon(QObject *parent)
+: KStatusNotifierItem(parent)
 {
-    setIconByPixmap(QIcon::fromTheme("call-start"));
+    setIconByName("call-start");
     setCategory(KStatusNotifierItem::SystemServices);
     setStatus(KStatusNotifierItem::Passive);
     setStandardActionsEnabled(false);
-     if(parent!=0){
-         QObject::setParent(parent);
-     }
     activateNextTime=true;
 }
 
 void SystemTrayIcon::showCustomMessage()
 {
-    showMessage(contextMenu()->title(), i18n("This is a fantastic and very funny message which tells the user he could use the system tray icon to manage the call ui, but it's late and I have no idea about what to write here"), nullptr, 3000);
+    showMessage(contextMenu()->title(), i18n("The window has been hidden but the call continues, you can access the menu from the system tray icon."), "call-start", 3000);
 }
 
 void SystemTrayIcon::show()
 {
-    if(activateNextTime==true)
-    {
+    if(activateNextTime) {
         setStatus(KStatusNotifierItem::Active);
         showCustomMessage();
     }else{
@@ -29,7 +44,7 @@ void SystemTrayIcon::show()
     }
 }
 
-void SystemTrayIcon::activateNext(bool yesno)
+void SystemTrayIcon::setActivateNext(bool yesno)
 {
     activateNextTime=yesno;
 }
