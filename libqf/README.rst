@@ -4,9 +4,9 @@ QtFarstream
 Motivation
 ----------
 
-I noticed ktp-call-ui has a problem properly connecting to 
+I noticed ktp-call-ui has a problem properly connecting to
 Jitsi, and some of the error messages I've gotten suggest
-that ktp-call-ui & jitsi are having trouble negotiating 
+that ktp-call-ui & jitsi are having trouble negotiating
 a common codec.
 
 I discovered no one had previously attempted to wrap farstream,
