@@ -13,6 +13,6 @@ namespace QFs {
         MediaTypeLast = MediaTypeVideo
     };
 }
-QFS_REGISTER_TYPE(QFs::MediaType);
+QFS_REGISTER_TYPE(QFs::MediaType); //codegen: GType=FS_TYPE_MEDIA_TYPE
 
 #endif

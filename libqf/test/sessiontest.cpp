@@ -31,15 +31,27 @@ void SessionTest::valueTest()
     QFs::ConferencePtr c2 = conference_value.get<QFs::ConferencePtr>();
     QCOMPARE(c2, conference);
     QVERIFY(!c2.isNull());
+
     //QFs::CodecPtr codec = session->property("current-send-codec").get<QFs::CodecPtr>();
     //QVERIFY(!codec.isNull());
-    GList *codecs = 0;
+    QGlib::Value codecs_value = session->property("codecs-without-config");
+    GList *codecs = static_cast<GList *>(codecs_value.get<void *>());
+
+//     GList *codecs = 0;
     GList *codec = 0;
     g_object_get(session, "codecs-without-config", &codecs, NULL);
     for (codec = codecs; codec->next != NULL; codec = codec->next) {
         qDebug() << "Codec: " << (static_cast<FsCodec *>(codec->data))->encoding_name;
     }
-    g_list_free(codecs);
+    fs_codec_list_destroy(codecs);
+
+//     QList<QFs::Codec *> qcodecs = session->property("codecs-without-config").get<QList<QFs::Codec *> >();
+//     QList<QFs::Codec *>::const_iterator qcodec = qcodecs.begin();
+//     QList<QFs::Codec *>::const_iterator qcodec_end = qcodecs.end();
+//     for(; qcodec != qcodec_end; ++qcodec++)
+//     {
+//         qDebug() << "QCodec: " << (*qcodec)->name();
+//     }
 }
 QTEST_APPLESS_MAIN(SessionTest)
 #include "moc_qfstest.cpp"

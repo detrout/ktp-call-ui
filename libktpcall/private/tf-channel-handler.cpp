@@ -61,6 +61,7 @@ void TfChannelHandler::init()
     try {
         QGst::init();
         QTf::init();
+        QFs::init();
     } catch (const QGlib::Error & error) {
         kError() << error;
         m_callChannel->hangup(Tp::CallStateChangeReasonInternalError,

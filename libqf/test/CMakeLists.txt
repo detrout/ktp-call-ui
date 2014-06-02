@@ -7,7 +7,7 @@ include_directories(
 )
 
 macro(qfs_test target)
-  automoc4_add_executable(${target} "${target}.cpp")
+  automoc4_add_executable(${target} "${target}.cpp" qfstest.cpp)
   target_link_libraries(${target} qf
                                   QtCore
                                   ${QT_QTTEST_LIBRARY}
@@ -17,3 +17,4 @@ macro(qfs_test target)
 endmacro(qfs_test)
 
 qfs_test(sessiontest)
+qfs_test(codectest)

@@ -10,6 +10,50 @@ include_directories(
     ${FARSTREAM_INCLUDE_DIRS}
 )
 
+# Macro to run codegen from the subdirs
+set(CODEGEN "/home/diane/kde/src/kde-telepathy/collabora/libqtgstreamer/x86_64-linux-gnu/codegen/codegen")
+macro(run_codegen _dir_name _includes _headers)
+    if (CODEGEN)
+        set(_prefixed_headers "")
+        foreach(_header ${_headers})
+            list(APPEND _prefixed_headers ${_dir_name}/${_header})
+        endforeach()
+
+        add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/gen.cpp
+                           COMMAND ${CODEGEN}
+                           ARGS ${_includes} ${_prefixed_headers}
+                                > ${CMAKE_CURRENT_SOURCE_DIR}/gen.cpp
+                           DEPENDS ${CODEGEN} ${_headers}
+                           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..)
+    endif()
+
+#     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/gen.cpp
+#                        COMMAND ${CMAKE_COMMAND}
+#                        ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/gen.cpp
+#                             ${CMAKE_CURRENT_BINARY_DIR}/gen.cpp
+#                        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/gen.cpp
+#                        COMMENT "Copying gen.cpp to the build directory")
+endmacro()
+set(CODEGEN_INCLUDES
+        -Ifarstream/fs-candidate.h
+        -Ifarstream/fs-codec.h
+        -Ifarstream/fs-conference.h
+        -Ifarstream/fs-participant.h
+        -Ifarstream/fs-session.h
+        -Ifarstream/fs-stream.h
+)
+set(CODEGEN_HEADERS
+        candidate.h
+        codec.h
+        conference.h
+        participant.h
+        session.h
+        stream.h
+        enums.h
+)
+#run_codegen("." "${CODEGEN_INCLUDES}" "${CODEGEN_HEADERS}")
+
+
 add_definitions(
     # These prevent gstreamer from including libxml2 headers
     -DGST_DISABLE_XML
@@ -19,8 +63,9 @@ add_definitions(
 kde4_add_library(qf STATIC
                     qf.cpp
                     gen.cpp
-                    session.cpp
+                    codec.cpp
                     conference.cpp
+                    session.cpp
                 )
 
 target_link_libraries(qf
