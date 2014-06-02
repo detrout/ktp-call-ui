@@ -24,7 +24,9 @@ target_link_libraries(ktpcall
     ${KDE4_PHONON_LIBRARY}
     ${QT_QTDBUS_LIBRARY}
     ${QTGSTREAMER_LIBRARIES}
+    ${FARSTREAM_LDFLAGS}
     ${TELEPATHY_QT4_LIBRARIES}
+    qf
     qtf
 )
 

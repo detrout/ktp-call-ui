@@ -40,6 +40,8 @@ typedef struct _TfContent TfContent;
 #define QTF_REGISTER_TYPE(Class) \
     QGLIB_REGISTER_TYPE_WITH_EXPORT_MACRO(Class, QTF_EXPORT)
 
+#include "../libqf/session.h"
+
 namespace QTf {
 
 class Channel;

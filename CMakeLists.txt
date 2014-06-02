@@ -27,6 +27,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${QTGSTREAMER_FLAGS} ${KDE4_ENABLE_EXCEP
 
 configure_file(version.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/version.h @ONLY)
 
+add_subdirectory(libqf)
 add_subdirectory(libqtf)
 add_subdirectory(libktpcall)
 add_subdirectory(src)
