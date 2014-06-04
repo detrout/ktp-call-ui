@@ -24,6 +24,7 @@
 #include <QGst/Global>
 
 #include "systemtray-icon.h"
+#include "qmlInterface.h"
 
 
 class CallContentHandler;
@@ -61,6 +62,7 @@ private:
     void changeVideoDisplayState(VideoDisplayFlags newState);
 
     void setupActions();
+    void setupQmlUi(); //TODO TODO TODO
     void checkEnableDtmf();
     QGst::ElementPtr tryVideoSink(const char *sink);
     QGst::ElementPtr constructVideoSink();

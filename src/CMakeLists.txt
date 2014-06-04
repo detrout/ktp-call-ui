@@ -12,6 +12,7 @@ set(ktp-call-ui_SRCS
     call-manager.cpp
     approver.cpp
     systemtray-icon.cpp
+    qmlInterface.cpp
 )
 
 kde4_add_ui_files(ktp-call-ui_SRCS call-window.ui dtmf-widget.ui)
@@ -21,6 +22,7 @@ target_link_libraries(ktp-call-ui
     ${TELEPATHY_QT4_LIBRARIES}
     ${KTP_LIBRARIES}
     ${QTGSTREAMER_UI_LIBRARIES}
+    ${QT_QTDECLARATIVE_LIBRARY}
     ktpcall
 )
 

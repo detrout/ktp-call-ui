@@ -15,7 +15,7 @@
     <Menu name="view">
       <Action name="showMyVideo" />
       <Action name="showDtmf" />
-      <Action name="goToSystemTray" />  <!--added later-->
+      <Action name="goToSystemTray" />
     </Menu>
     <Menu name="media" >
       <text>Media</text>
@@ -24,7 +24,7 @@
     </Menu>
   </MenuBar>
 
-  <ToolBar name="mainToolBar" position="bottom" >
+  <!--<ToolBar name="mainToolBar" position="bottom" >
     <text>Main Toolbar</text>
     <Action name="hangup" />
     <Action name="hold" />
@@ -34,6 +34,6 @@
     <Separator />
     <Action name="mute" />
     <Action name="sendVideo" />
-  </ToolBar>
+  </ToolBar>-->
 
 </gui>

@@ -36,7 +36,13 @@
 #include <KToolBar>
 #include <KMessageWidget>
 
+#include <cstdlib>
+#include <QDeclarativeView>
+#include <QDeclarativeContext>
+#include <QDeclarativeEngine>
 #include <QGst/ElementFactory>
+#include <QGst/Ui/GraphicsVideoSurface>
+#include <QGst/Init>
 
 struct CallWindow::Private
 {
@@ -49,8 +55,10 @@ struct CallWindow::Private
     Tp::CallChannelPtr callChannel;
     CallChannelHandler *channelHandler;
     StatusArea *statusArea;
-    Ui::CallWindow ui;
+    //Ui::CallWindow ui; //TODO
     bool callEnded;
+
+    QmlInterface* qmlUi; //TODO
 
     KToggleAction *showMyVideoAction;
     KToggleAction *showDtmfAction;
@@ -75,28 +83,23 @@ CallWindow::CallWindow(const Tp::CallChannelPtr & callChannel)
     d->callChannel = callChannel;
 
     //create ui
-    d->ui.setupUi(this);
+    setupQmlUi();
     d->statusArea = new StatusArea(statusBar());
-    d->ui.errorWidget->hide();
-    d->ui.errorWidget->setMessageType(KMessageWidget::Error);
+    //d->ui.errorWidget->hide();
+    //d->ui.errorWidget->setMessageType(KMessageWidget::Error);
     setupActions();
-    setupGUI(QSize(428, 395), ToolBar | Keys | StatusBar | Create, QLatin1String("callwindowui.rc"));
+    setupGUI(QSize(750, 450), ToolBar | Keys | StatusBar | Create, QLatin1String("callwindowui.rc"));
     setAutoSaveSettings(QLatin1String("CallWindow"), false);
     toolBar()->setToolButtonStyle(Qt::ToolButtonIconOnly);
 
     DtmfHandler *handler = new DtmfHandler(d->callChannel, this);
-    handler->connectDtmfWidget(d->ui.dtmfWidget);
+    //TODO TODO
+    //handler->connectDtmfWidget(d->ui.dtmfWidget);
 
     //TODO handle member joining later
     if (!d->callChannel->remoteMembers().isEmpty()) {
         Tp::ContactPtr remoteMember = *d->callChannel->remoteMembers().begin();
-        d->ui.remoteUserDisplayLabel->setText(QString::fromAscii(
-                "<html><body>"
-                "<p align=\"center\"><img src=\"%1\" /></p>"
-                "<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px;\">"
-                    "<span style=\" font-weight:600;\">%2</span></p>"
-                "</body></html>")
-                .arg(remoteMember->avatarData().fileName, remoteMember->alias()));
+        d->qmlUi->setLabel("Call with "+remoteMember->alias(), remoteMember->avatarData().fileName );
         setWindowTitle(i18n("Call with %1", remoteMember->alias()));
     }
     setupSystemTray();
@@ -347,35 +350,41 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
 
     if (oldState.testFlag(LocalVideoPreview) && !newState.testFlag(LocalVideoPreview)) {
         d->videoContentHandler->unlinkVideoPreviewSink();
-        d->ui.videoPreviewWidget->setVideoSink(QGst::ElementPtr());
+        //d->ui.videoPreviewWidget->setVideoSink(QGst::ElementPtr());
+        //TODO
     } else if (!oldState.testFlag(LocalVideoPreview) && newState.testFlag(LocalVideoPreview)) {
         QGst::ElementPtr localVideoSink = constructVideoSink();
         if (localVideoSink) {
-            d->ui.videoPreviewWidget->setVideoSink(localVideoSink);
-            d->videoContentHandler->linkVideoPreviewSink(localVideoSink);
+            //d->ui.videoPreviewWidget->setVideoSink(localVideoSink);
+            //d->videoContentHandler->linkVideoPreviewSink(localVideoSink);
+            d->videoContentHandler->linkVideoPreviewSink(d->qmlUi->getVideoPreviewSink());
+            //TODO
         }
     }
 
     if (oldState.testFlag(RemoteVideo) && !newState.testFlag(RemoteVideo)) {
         d->videoContentHandler->unlinkRemoteMemberVideoSink(d->remoteVideoContact);
-        d->ui.videoWidget->setVideoSink(QGst::ElementPtr());
+        //d->ui.videoWidget->setVideoSink(QGst::ElementPtr());
     } else if (!oldState.testFlag(RemoteVideo) && newState.testFlag(RemoteVideo)) {
         QGst::ElementPtr remoteVideoSink = constructVideoSink();
         if (remoteVideoSink) {
-            d->ui.videoWidget->setVideoSink(remoteVideoSink);
-            d->videoContentHandler->linkRemoteMemberVideoSink(d->remoteVideoContact, remoteVideoSink);
+            //d->ui.videoWidget->setVideoSink(remoteVideoSink);
+            //d->videoContentHandler->linkRemoteMemberVideoSink(d->remoteVideoContact, remoteVideoSink);
+
         }
     }
 
     if (newState == NoVideo) {
-        d->ui.callStackedWidget->setCurrentIndex(0);
+        //d->ui.callStackedWidget->setCurrentIndex(0);
+        d->qmlUi->showVideo(false);
     } else {
-        d->ui.callStackedWidget->setCurrentIndex(1);
+        //d->ui.callStackedWidget->setCurrentIndex(1);
+        d->qmlUi->showVideo(true);
 
         if (newState.testFlag(LocalVideoPreview)) {
-            d->ui.videoPreviewWidget->show();
+            //d->ui.videoPreviewWidget->show();
         } else {
-            d->ui.videoPreviewWidget->hide();
+            //d->ui.videoPreviewWidget->hide();
         }
     }
 
@@ -450,7 +459,7 @@ void CallWindow::checkEnableDtmf()
 
 void CallWindow::toggleDtmf(bool checked)
 {
-    d->ui.dtmfStackedWidget->setCurrentIndex(checked ? 1 : 0);
+    //d->ui.dtmfStackedWidget->setCurrentIndex(checked ? 1 : 0);
 }
 
 void CallWindow::toggleMute(bool checked)
@@ -502,8 +511,8 @@ void CallWindow::hold()
 void CallWindow::holdOperationFinished(Tp::PendingOperation* operation)
 {
     if (operation->isError()) {
-        d->ui.errorWidget->setText(i18nc("@info:error", "There was an error while pausing the call"));
-        d->ui.errorWidget->animatedShow();
+        //d->ui.errorWidget->setText(i18nc("@info:error", "There was an error while pausing the call"));
+        //d->ui.errorWidget->animatedShow();
         return;
     }
 }
@@ -585,10 +594,10 @@ void CallWindow::setupSystemTray()
 void CallWindow::toggleShowMyVideo(bool checked)
 {
     if (checked) {
-        d->ui.videoPreviewWidget->hide();
-        d->ui.videoWidget->repaint();
+        //d->ui.videoPreviewWidget->hide();
+        //d->ui.videoWidget->repaint();
     } else {
-        d->ui.videoPreviewWidget->show();
+        //d->ui.videoPreviewWidget->show();
     }
 }
 
@@ -604,4 +613,16 @@ void CallWindow::hideEvent(QHideEvent* event)
         systemtrayicon->show();
     }
     event->accept();
+}
+
+
+
+
+
+void CallWindow::setupQmlUi()
+{
+    //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+
+    d->qmlUi = new QmlInterface( this );
+    setCentralWidget(d->qmlUi);
 }
