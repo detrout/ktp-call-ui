@@ -26,6 +26,8 @@
 
 #include <KDebug>
 
+#include <gst/gst.h>
+
 namespace KTpCallPrivate {
 
 TfChannelHandler::TfChannelHandler(const Tp::CallChannelPtr & channel,
@@ -170,6 +172,35 @@ void TfChannelHandler::onFsConferenceRemoved(const QGst::ElementPtr & conference
 
 void TfChannelHandler::onBusMessage(const QGst::MessagePtr & message)
 {
+    QGst::StructurePtr structure = message->internalStructure();
+    switch(message->type()) {
+        case QGst::MessageElement:
+            if (structure->name() == "level") {
+                QGlib::Value rms(structure->value("rms"));
+                GValueArray *array = static_cast<GValueArray *>(g_value_get_boxed(rms));
+                if (array) {
+                    for(quint32 i = 0; i != array->n_values; ++i) {
+                        QGlib::Value channel(g_value_array_get_nth(array, i));
+                        kDebug() << "rms channel #" << i << channel.get<double>();
+                    }
+                }
+            } else if (structure->name() == "farstream-recv-codec-changed") {
+                kDebug() << message->typeName() << structure->name();
+            }
+            break;
+        case QGst::MessageError:
+            kError() << "Error:" << message.dynamicCast<QGst::ErrorMessage>()->debugMessage();
+            break;
+        case QGst::MessageStateChanged:
+            break;
+        case QGst::MessageStreamStatus:
+            kDebug() << "Stream status"
+                     << message.dynamicCast<QGst::StreamStatusMessage>()->statusType()
+                     << message.dynamicCast<QGst::StreamStatusMessage>()->streamStatusObject();
+        default:
+            kDebug() << "unhandled message" << message->typeName();
+            break;
+    }
     m_tfChannel->processBusMessage(message);
 }
 
