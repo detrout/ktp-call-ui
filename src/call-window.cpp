@@ -55,7 +55,6 @@ struct CallWindow::Private
     Tp::CallChannelPtr callChannel;
     CallChannelHandler *channelHandler;
     StatusArea *statusArea;
-    //Ui::CallWindow ui; //TODO
     bool callEnded;
 
     QmlInterface* qmlUi; //TODO
@@ -314,36 +313,36 @@ void CallWindow::onRemoteVideoSendingStateChanged(const Tp::ContactPtr & contact
     }
 }
 
-QGst::ElementPtr CallWindow::tryVideoSink(const char *videoSink)
-{
-    QGst::ElementPtr sink = QGst::ElementFactory::make(videoSink);
-    if (!sink) {
-        kDebug() << "Could not make video sink" << videoSink;
-        return sink;
-     }
+// QGst::ElementPtr CallWindow::tryVideoSink(const char *videoSink)
+// {
+//     QGst::ElementPtr sink = QGst::ElementFactory::make(videoSink);
+//     if (!sink) {
+//         kDebug() << "Could not make video sink" << videoSink;
+//         return sink;
+//      }
+//
+//     if (!sink->setState(QGst::StateReady)) {
+//         kDebug() << "Video sink" << videoSink << "does not want to become ready";
+//         return QGst::ElementPtr();
+//     }
+//
+//     kDebug() << "Using video sink" << videoSink;
+//     sink->setState(QGst::StateNull);
+//     return sink;
+// }
 
-    if (!sink->setState(QGst::StateReady)) {
-        kDebug() << "Video sink" << videoSink << "does not want to become ready";
-        return QGst::ElementPtr();
-    }
-
-    kDebug() << "Using video sink" << videoSink;
-    sink->setState(QGst::StateNull);
-    return sink;
-}
-
-QGst::ElementPtr CallWindow::constructVideoSink()
-{
-    QGst::ElementPtr sink = tryVideoSink("xvimagesink");
-    if (!sink) {
-        sink = tryVideoSink("ximagesink");
-    }
-
-    sink->setProperty("force-aspect-ratio", true);
-
-    return sink;
-
-}
+// QGst::ElementPtr CallWindow::constructVideoSink()
+// {
+//     QGst::ElementPtr sink = tryVideoSink("xvimagesink");
+//     if (!sink) {
+//         sink = tryVideoSink("ximagesink");
+//     }
+//
+//     sink->setProperty("force-aspect-ratio", true);
+//
+//     return sink;
+//
+// }
 void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
 {
     VideoDisplayFlags oldState = d->currentVideoDisplayState;
@@ -351,14 +350,13 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
     if (oldState.testFlag(LocalVideoPreview) && !newState.testFlag(LocalVideoPreview)) {
         d->videoContentHandler->unlinkVideoPreviewSink();
         //d->ui.videoPreviewWidget->setVideoSink(QGst::ElementPtr());
-        //TODO
     } else if (!oldState.testFlag(LocalVideoPreview) && newState.testFlag(LocalVideoPreview)) {
-        QGst::ElementPtr localVideoSink = constructVideoSink();
+        //QGst::ElementPtr localVideoSink = constructVideoSink();
+        QGst::ElementPtr localVideoSink = d->qmlUi->getVideoPreviewSink();
         if (localVideoSink) {
             //d->ui.videoPreviewWidget->setVideoSink(localVideoSink);
             //d->videoContentHandler->linkVideoPreviewSink(localVideoSink);
-            d->videoContentHandler->linkVideoPreviewSink(d->qmlUi->getVideoPreviewSink());
-            //TODO
+            d->videoContentHandler->linkVideoPreviewSink(localVideoSink );
         }
     }
 
@@ -366,10 +364,12 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
         d->videoContentHandler->unlinkRemoteMemberVideoSink(d->remoteVideoContact);
         //d->ui.videoWidget->setVideoSink(QGst::ElementPtr());
     } else if (!oldState.testFlag(RemoteVideo) && newState.testFlag(RemoteVideo)) {
-        QGst::ElementPtr remoteVideoSink = constructVideoSink();
+        //QGst::ElementPtr remoteVideoSink = constructVideoSink();
+        QGst::ElementPtr remoteVideoSink= d->qmlUi->getVideoSink();
         if (remoteVideoSink) {
             //d->ui.videoWidget->setVideoSink(remoteVideoSink);
             //d->videoContentHandler->linkRemoteMemberVideoSink(d->remoteVideoContact, remoteVideoSink);
+            d->videoContentHandler->linkRemoteMemberVideoSink(d->remoteVideoContact, remoteVideoSink);
 
         }
     }
@@ -381,7 +381,7 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
         //d->ui.callStackedWidget->setCurrentIndex(1);
         d->qmlUi->showVideo(true);
 
-        if (newState.testFlag(LocalVideoPreview)) {
+        if (newState.testFlag(LocalVideoPreview)) { //TODO Hides/Shows preview video at start!
             //d->ui.videoPreviewWidget->show();
         } else {
             //d->ui.videoPreviewWidget->hide();
@@ -396,13 +396,18 @@ void CallWindow::setupActions()
     d->showMyVideoAction = new KToggleAction(i18nc("@action", "Show my video"), this);
     d->showMyVideoAction->setIcon(KIcon("camera-web"));
     d->showMyVideoAction->setEnabled(true);
-    connect(d->showMyVideoAction, SIGNAL(toggled(bool)), this,SLOT(toggleShowMyVideo(bool)));
+    d->showMyVideoAction->setChecked(true);
+    connect(d->showMyVideoAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(showMyVideoChangeState(bool)));
+    connect(d->qmlUi,SIGNAL(showMyVideoClicked(bool)), d->showMyVideoAction, SLOT(setChecked(bool)));
     actionCollection()->addAction("showMyVideo", d->showMyVideoAction);
 
     d->showDtmfAction = new KToggleAction(i18nc("@action", "Show dialpad"), this);
     d->showDtmfAction->setIcon(KIcon("phone"));
     d->showDtmfAction->setEnabled(false);
     connect(d->showDtmfAction, SIGNAL(toggled(bool)), SLOT(toggleDtmf(bool)));
+    connect(d->showDtmfAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(showDialpadChangeState(bool)));
+    connect(d->qmlUi, SIGNAL(showDialpadClicked(bool)), SLOT(toggleDtmf(bool)));
+    connect(d->qmlUi, SIGNAL(showDialpadClicked(bool)), d->showDtmfAction, SLOT(setChecked(bool)));
     actionCollection()->addAction("showDtmf", d->showDtmfAction);
 
     d->goToSystemTrayAction = new KAction(i18nc("@action", "Hide window"), this);
@@ -425,16 +430,21 @@ void CallWindow::setupActions()
     d->muteAction->setCheckedState(KGuiItem(i18nc("@action", "Mute"), KIcon("audio-volume-muted")));
     d->muteAction->setEnabled(false); //will be enabled later
     connect(d->muteAction, SIGNAL(toggled(bool)), SLOT(toggleMute(bool)));
+    connect(d->qmlUi,SIGNAL(muteClicked(bool)), SLOT(toggleMute(bool)));
+    connect(d->muteAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(soundChangeState(bool)));
+    connect(d->qmlUi,SIGNAL(muteClicked(bool)), d->muteAction, SLOT(setChecked(bool)));
     actionCollection()->addAction("mute", d->muteAction);
 
     d->holdAction = new KAction(i18nc("@action", "Hold"), this);
     d->holdAction->setIcon(KIcon("media-playback-pause"));
     d->holdAction->setEnabled(false); //will be enabled later
     connect(d->holdAction, SIGNAL(triggered()), SLOT(hold()));
+    connect(d->qmlUi,SIGNAL(holdClicked()),SLOT(hold()));
     actionCollection()->addAction("hold", d->holdAction);
 
     d->hangupAction = new KAction(KIcon("call-stop"), i18nc("@action", "Hangup"), this);
     connect(d->hangupAction, SIGNAL(triggered()), SLOT(hangup()));
+    connect(d->qmlUi,SIGNAL(hangupClicked()),SLOT(hangup()));
     actionCollection()->addAction("hangup", d->hangupAction);
 
 }
@@ -532,6 +542,7 @@ void CallWindow::onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStat
         }
         d->holdAction->setEnabled(true);
         d->holdAction->setIcon(KIcon("media-playback-start"));
+        d->qmlUi->changeHoldIcon("start");
         d->statusArea->stopDurationTimer();
         break;
 
@@ -544,6 +555,7 @@ void CallWindow::onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStat
         }
         d->holdAction->setEnabled(true);
         d->holdAction->setIcon(KIcon("media-playback-pause"));
+        d->qmlUi->changeHoldIcon("pause");
         d->statusArea->startDurationTimer();
         break;
 
@@ -591,16 +603,6 @@ void CallWindow::setupSystemTray()
     systemtrayicon->setContextMenu(trayIconMenu);
 }
 
-void CallWindow::toggleShowMyVideo(bool checked)
-{
-    if (checked) {
-        //d->ui.videoPreviewWidget->hide();
-        //d->ui.videoWidget->repaint();
-    } else {
-        //d->ui.videoPreviewWidget->show();
-    }
-}
-
 void CallWindow::showEvent(QShowEvent* event)
 {
     event->accept();
@@ -614,15 +616,8 @@ void CallWindow::hideEvent(QHideEvent* event)
     }
     event->accept();
 }
-
-
-
-
-
 void CallWindow::setupQmlUi()
 {
-    //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-
     d->qmlUi = new QmlInterface( this );
     setCentralWidget(d->qmlUi);
 }

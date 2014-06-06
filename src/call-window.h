@@ -62,14 +62,13 @@ private:
     void changeVideoDisplayState(VideoDisplayFlags newState);
 
     void setupActions();
-    void setupQmlUi(); //TODO TODO TODO
+    void setupQmlUi();
     void checkEnableDtmf();
     QGst::ElementPtr tryVideoSink(const char *sink);
     QGst::ElementPtr constructVideoSink();
 
 private Q_SLOTS:
     void toggleDtmf(bool checked);
-    void toggleShowMyVideo(bool checked);
     void toggleMute(bool checked);
     void hangup();
     void hold();
