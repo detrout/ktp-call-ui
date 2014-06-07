@@ -7,12 +7,13 @@ set(ktp-call-ui_SRCS
     call-window.cpp
     call-handler.cpp
     dtmf-handler.cpp
-    dtmf-widget.cpp
+#     dtmf-widget.cpp
     status-area.cpp
     call-manager.cpp
     approver.cpp
     systemtray-icon.cpp
-    qmlInterface.cpp
+    qml-interface.cpp
+    dtmf-qml.cpp
 )
 
 kde4_add_ui_files(ktp-call-ui_SRCS call-window.ui dtmf-widget.ui)

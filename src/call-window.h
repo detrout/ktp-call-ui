@@ -24,7 +24,7 @@
 #include <QGst/Global>
 
 #include "systemtray-icon.h"
-#include "qmlInterface.h"
+#include "qml-interface.h"
 
 
 class CallContentHandler;

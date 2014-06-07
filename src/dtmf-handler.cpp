@@ -35,10 +35,14 @@ DtmfHandler::~DtmfHandler()
 
 void DtmfHandler::connectDtmfWidget(DtmfWidget *dtmfWidget)
 {
-    connect(dtmfWidget, SIGNAL(startSendDtmfEvent(Tp::DTMFEvent)),
-            SLOT(onStartSendDtmfEvent(Tp::DTMFEvent)));
-    connect(dtmfWidget, SIGNAL(stopSendDtmfEvent()),
-            SLOT(onStopSendDtmfEvent()));
+    connect(dtmfWidget, SIGNAL(startSendDtmfEvent(Tp::DTMFEvent)), SLOT(onStartSendDtmfEvent(Tp::DTMFEvent)));
+    connect(dtmfWidget, SIGNAL(stopSendDtmfEvent()), SLOT(onStopSendDtmfEvent()));
+}
+
+void DtmfHandler::connectDtmfQml(DtmfQml *dtmfQml)
+{
+    connect(dtmfQml, SIGNAL(startSendDtmfEvent(Tp::DTMFEvent)), SLOT(onStartSendDtmfEvent(Tp::DTMFEvent)));
+    connect(dtmfQml, SIGNAL(stopSendDtmfEvent()), SLOT(onStopSendDtmfEvent()));
 }
 
 void DtmfHandler::onStartSendDtmfEvent(Tp::DTMFEvent event)

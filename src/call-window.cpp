@@ -57,7 +57,8 @@ struct CallWindow::Private
     StatusArea *statusArea;
     bool callEnded;
 
-    QmlInterface* qmlUi; //TODO
+    QmlInterface *qmlUi; //TODO
+    DtmfQml *dtmfQml; //TODO
 
     KToggleAction *showMyVideoAction;
     KToggleAction *showDtmfAction;
@@ -93,7 +94,8 @@ CallWindow::CallWindow(const Tp::CallChannelPtr & callChannel)
 
     DtmfHandler *handler = new DtmfHandler(d->callChannel, this);
     //TODO TODO
-    //handler->connectDtmfWidget(d->ui.dtmfWidget);
+    d->dtmfQml = new DtmfQml( this );
+    handler->connectDtmfQml(d->dtmfQml);
 
     //TODO handle member joining later
     if (!d->callChannel->remoteMembers().isEmpty()) {
@@ -129,6 +131,7 @@ void CallWindow::setStatus(Status status, const Tp::CallStateReason & reason)
         d->statusArea->startDurationTimer();
         if (d->callChannel.data()->hasInterface(TP_QT_IFACE_CHANNEL_INTERFACE_HOLD)) {
             d->holdAction->setEnabled(true);
+            d->qmlUi->setHoldEnabled(true);
             connect(d->callChannel.data(), SIGNAL(localHoldStateChanged(Tp::LocalHoldState,Tp::LocalHoldStateReason)),
                     SLOT(onHoldStatusChanged(Tp::LocalHoldState,Tp::LocalHoldStateReason)));
         }
@@ -215,6 +218,7 @@ void CallWindow::setStatus(Status status, const Tp::CallStateReason & reason)
         break;
       }
       d->holdAction->setEnabled(false);
+      d->qmlUi->setHoldEnabled(false);
     default:
         Q_ASSERT(false);
     }
@@ -232,8 +236,11 @@ void CallWindow::onContentAdded(CallContentHandler *contentHandler)
 
         VolumeController *vol = audioContentHandler->inputVolumeControl();
         d->muteAction->setEnabled(vol->volumeControlSupported());
+        d->qmlUi->setSoundEnabled(vol->volumeControlSupported());
         connect(vol, SIGNAL(volumeControlSupportedChanged(bool)),
                 d->muteAction, SLOT(setEnabled(bool)));
+        connect(vol, SIGNAL(volumeControlSupportedChanged(bool)),
+                d->qmlUi, SLOT(setSoundEnabled(bool)));
         d->muteAction->setChecked(vol->isMuted());
         connect(vol, SIGNAL(mutedChanged(bool)), d->muteAction, SLOT(setChecked(bool)));
         d->muteAction->setProperty("volumeController", QVariant::fromValue<QObject*>(vol));
@@ -268,6 +275,7 @@ void CallWindow::onContentRemoved(CallContentHandler *contentHandler)
         VolumeController *vol = audioContentHandler->inputVolumeControl();
         disconnect(vol, NULL, d->muteAction, NULL);
         d->muteAction->setEnabled(false);
+        d->qmlUi->setSoundEnabled(false);
         d->muteAction->setProperty("volumeController", QVariant());
 
         d->statusArea->showAudioStatusIcon(false);
@@ -397,17 +405,12 @@ void CallWindow::setupActions()
     d->showMyVideoAction->setIcon(KIcon("camera-web"));
     d->showMyVideoAction->setEnabled(true);
     d->showMyVideoAction->setChecked(true);
-    connect(d->showMyVideoAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(showMyVideoChangeState(bool)));
-    connect(d->qmlUi,SIGNAL(showMyVideoClicked(bool)), d->showMyVideoAction, SLOT(setChecked(bool)));
     actionCollection()->addAction("showMyVideo", d->showMyVideoAction);
 
     d->showDtmfAction = new KToggleAction(i18nc("@action", "Show dialpad"), this);
     d->showDtmfAction->setIcon(KIcon("phone"));
     d->showDtmfAction->setEnabled(false);
     connect(d->showDtmfAction, SIGNAL(toggled(bool)), SLOT(toggleDtmf(bool)));
-    connect(d->showDtmfAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(showDialpadChangeState(bool)));
-    connect(d->qmlUi, SIGNAL(showDialpadClicked(bool)), SLOT(toggleDtmf(bool)));
-    connect(d->qmlUi, SIGNAL(showDialpadClicked(bool)), d->showDtmfAction, SLOT(setChecked(bool)));
     actionCollection()->addAction("showDtmf", d->showDtmfAction);
 
     d->goToSystemTrayAction = new KAction(i18nc("@action", "Hide window"), this);
@@ -430,23 +433,34 @@ void CallWindow::setupActions()
     d->muteAction->setCheckedState(KGuiItem(i18nc("@action", "Mute"), KIcon("audio-volume-muted")));
     d->muteAction->setEnabled(false); //will be enabled later
     connect(d->muteAction, SIGNAL(toggled(bool)), SLOT(toggleMute(bool)));
-    connect(d->qmlUi,SIGNAL(muteClicked(bool)), SLOT(toggleMute(bool)));
-    connect(d->muteAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(soundChangeState(bool)));
-    connect(d->qmlUi,SIGNAL(muteClicked(bool)), d->muteAction, SLOT(setChecked(bool)));
     actionCollection()->addAction("mute", d->muteAction);
 
     d->holdAction = new KAction(i18nc("@action", "Hold"), this);
     d->holdAction->setIcon(KIcon("media-playback-pause"));
     d->holdAction->setEnabled(false); //will be enabled later
     connect(d->holdAction, SIGNAL(triggered()), SLOT(hold()));
-    connect(d->qmlUi,SIGNAL(holdClicked()),SLOT(hold()));
     actionCollection()->addAction("hold", d->holdAction);
 
     d->hangupAction = new KAction(KIcon("call-stop"), i18nc("@action", "Hangup"), this);
     connect(d->hangupAction, SIGNAL(triggered()), SLOT(hangup()));
-    connect(d->qmlUi,SIGNAL(hangupClicked()),SLOT(hangup()));
     actionCollection()->addAction("hangup", d->hangupAction);
 
+    //QML-UI <---> Actions
+    //Show my video
+    connect(d->showMyVideoAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(showMyVideoChangeState(bool)));
+    connect(d->qmlUi,SIGNAL(showMyVideoClicked(bool)), d->showMyVideoAction, SLOT(setChecked(bool)));
+    //Show dialpad
+    connect(d->qmlUi, SIGNAL(showDialpadClicked(bool)), SLOT(toggleDtmf(bool)));
+    connect(d->showDtmfAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(showDialpadChangeState(bool)));
+    connect(d->qmlUi, SIGNAL(showDialpadClicked(bool)), d->showDtmfAction, SLOT(setChecked(bool)));
+    //Mute <-> Sound activated
+    connect(d->qmlUi,SIGNAL(muteClicked(bool)), SLOT(toggleMute(bool)));
+    connect(d->muteAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(soundChangeState(bool)));
+    connect(d->qmlUi,SIGNAL(muteClicked(bool)), d->muteAction, SLOT(setChecked(bool)));
+    //Hold
+    connect(d->qmlUi,SIGNAL(holdClicked()),SLOT(hold()));
+    //Hangup
+    connect(d->qmlUi,SIGNAL(hangupClicked()),SLOT(hangup()));
 }
 
 void CallWindow::checkEnableDtmf()
@@ -461,6 +475,7 @@ void CallWindow::checkEnableDtmf()
 
     kDebug() << "DTMF supported:" << dtmfSupported;
     d->showDtmfAction->setEnabled(dtmfSupported);
+    d->qmlUi->setShowDialpadEnabled(dtmfSupported);
 
     if (!dtmfSupported) {
         toggleDtmf(false);
@@ -469,6 +484,12 @@ void CallWindow::checkEnableDtmf()
 
 void CallWindow::toggleDtmf(bool checked)
 {
+    if(checked){
+        d->dtmfQml->show();
+    }
+    else{
+        d->dtmfQml->hide();
+    }
     //d->ui.dtmfStackedWidget->setCurrentIndex(checked ? 1 : 0);
 }
 
@@ -541,6 +562,7 @@ void CallWindow::onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStat
             d->statusArea->setMessage(StatusArea::Error, i18nc("@info:error", "Unknown error"));
         }
         d->holdAction->setEnabled(true);
+        d->qmlUi->setHoldEnabled(true);
         d->holdAction->setIcon(KIcon("media-playback-start"));
         d->qmlUi->changeHoldIcon("start");
         d->statusArea->stopDurationTimer();
@@ -554,6 +576,7 @@ void CallWindow::onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStat
             d->statusArea->setMessage(StatusArea::Error, i18nc("@info:error", "Unknown error"));
         }
         d->holdAction->setEnabled(true);
+        d->qmlUi->setHoldEnabled(true);
         d->holdAction->setIcon(KIcon("media-playback-pause"));
         d->qmlUi->changeHoldIcon("pause");
         d->statusArea->startDurationTimer();
@@ -562,11 +585,13 @@ void CallWindow::onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStat
     case Tp::LocalHoldStatePendingHold:
         d->statusArea->setMessage(StatusArea::Status, i18nc("@info:status", "Putting the call on hold..."));
         d->holdAction->setEnabled(false);
+        d->qmlUi->setHoldEnabled(false);
         break;
 
     case Tp::LocalHoldStatePendingUnhold:
         d->statusArea->setMessage(StatusArea::Status, i18nc("@info:status", "Resuming the call..."));
         d->holdAction->setEnabled(false);
+        d->qmlUi->setHoldEnabled(false);
         break;
 
     default:
