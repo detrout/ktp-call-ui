@@ -93,14 +93,13 @@ CallWindow::CallWindow(const Tp::CallChannelPtr & callChannel)
     toolBar()->setToolButtonStyle(Qt::ToolButtonIconOnly);
 
     DtmfHandler *handler = new DtmfHandler(d->callChannel, this);
-    //TODO TODO
     d->dtmfQml = new DtmfQml( this );
     handler->connectDtmfQml(d->dtmfQml);
 
     //TODO handle member joining later
     if (!d->callChannel->remoteMembers().isEmpty()) {
         Tp::ContactPtr remoteMember = *d->callChannel->remoteMembers().begin();
-        d->qmlUi->setLabel("Call with "+remoteMember->alias(), remoteMember->avatarData().fileName );
+        d->qmlUi->setLabel(i18n("Call with %1", remoteMember->alias()), remoteMember->avatarData().fileName );
         setWindowTitle(i18n("Call with %1", remoteMember->alias()));
     }
     setupSystemTray();
@@ -389,11 +388,11 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
         //d->ui.callStackedWidget->setCurrentIndex(1);
         d->qmlUi->showVideo(true);
 
-        if (newState.testFlag(LocalVideoPreview)) { //TODO Hides/Shows preview video at start!
-            //d->ui.videoPreviewWidget->show();
-        } else {
-            //d->ui.videoPreviewWidget->hide();
-        }
+//         if (newState.testFlag(LocalVideoPreview)) {
+//             //d->ui.videoPreviewWidget->show();
+//         } else {
+//             //d->ui.videoPreviewWidget->hide();
+//         }
     }
 
     d->currentVideoDisplayState = newState;
@@ -604,7 +603,6 @@ void CallWindow::setupSystemTray()
     KMenu *trayIconMenu=new KMenu(this);
     systemtrayicon=new SystemTrayIcon(this);
 
-
     //Save the title
     trayIconMenu->setTitle(windowTitle());
 
@@ -621,6 +619,7 @@ void CallWindow::setupSystemTray()
     trayIconMenu->addAction(KStandardAction::close(this, SLOT(close()), actionCollection()));
 
     systemtrayicon->setAssociatedWidget(this);
+    systemtrayicon->setToolTip("call-start", windowTitle(),"");
 
     //Restore when left click
     connect(systemtrayicon, SIGNAL(activateRequested(bool,QPoint)), this, SLOT(show()));
