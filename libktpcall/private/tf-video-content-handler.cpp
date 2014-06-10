@@ -104,8 +104,9 @@ bool TfVideoContentHandler::startSending()
 {
     QGst::ElementPtr src = DeviceElementFactory::makeVideoCaptureElement();
 
-    //TODO funciona bien para capturar screencasts (cuidado! mirror vertical)
-    //QGst::ElementPtr src= QGst::Bin::fromDescription("ximagesrc");
+    // TODO funciona bien para capturar screencasts (cuidado! mirror vertical)
+    // http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gst-plugins-good-plugins/html/gst-plugins-good-plugins-ximagesrc.html
+    // QGst::ElementPtr src= QGst::Bin::fromDescription("ximagesrc");
 
     if (!src) {
         kDebug() << "Could not initialize video capture device";
