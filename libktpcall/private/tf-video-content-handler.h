@@ -38,12 +38,13 @@ public:
     void unlinkVideoPreviewSink();
 
     // TODO camera device control
+    // Camera/screencast control for the startSending function.
 
     virtual BaseSinkController *createSinkController(const QGst::PadPtr & srcPad);
     virtual void releaseSinkControllerData(BaseSinkController *ctrl);
 
 protected:
-    virtual bool startSending();
+    virtual bool startSending(/*TODO camera/screencast */);
     virtual void stopSending();
 
 private:

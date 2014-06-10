@@ -103,6 +103,10 @@ void TfVideoContentHandler::releaseSinkControllerData(BaseSinkController *ctrl)
 bool TfVideoContentHandler::startSending()
 {
     QGst::ElementPtr src = DeviceElementFactory::makeVideoCaptureElement();
+
+    //TODO funciona bien para capturar screencasts (cuidado! mirror vertical)
+    //QGst::ElementPtr src= QGst::Bin::fromDescription("ximagesrc");
+
     if (!src) {
         kDebug() << "Could not initialize video capture device";
         return false;

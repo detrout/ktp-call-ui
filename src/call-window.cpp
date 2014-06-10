@@ -337,16 +337,14 @@ void CallWindow::onRemoteVideoSendingStateChanged(const Tp::ContactPtr & contact
 //     sink->setState(QGst::StateNull);
 //     return sink;
 // }
-
+//
 // QGst::ElementPtr CallWindow::constructVideoSink()
 // {
 //     QGst::ElementPtr sink = tryVideoSink("xvimagesink");
 //     if (!sink) {
 //         sink = tryVideoSink("ximagesink");
 //     }
-//
 //     sink->setProperty("force-aspect-ratio", true);
-//
 //     return sink;
 //
 // }
@@ -363,7 +361,8 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
         if (localVideoSink) {
             //d->ui.videoPreviewWidget->setVideoSink(localVideoSink);
             //d->videoContentHandler->linkVideoPreviewSink(localVideoSink);
-            d->videoContentHandler->linkVideoPreviewSink(localVideoSink );
+            localVideoSink->setProperty("force-aspect-ratio", true);
+            d->videoContentHandler->linkVideoPreviewSink(localVideoSink);
         }
     }
 
@@ -376,6 +375,7 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
         if (remoteVideoSink) {
             //d->ui.videoWidget->setVideoSink(remoteVideoSink);
             //d->videoContentHandler->linkRemoteMemberVideoSink(d->remoteVideoContact, remoteVideoSink);
+            remoteVideoSink->setProperty("force-aspect-ratio", true);
             d->videoContentHandler->linkRemoteMemberVideoSink(d->remoteVideoContact, remoteVideoSink);
 
         }
