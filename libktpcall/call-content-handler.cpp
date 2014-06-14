@@ -111,4 +111,10 @@ void VideoContentHandler::unlinkRemoteMemberVideoSink(const Tp::ContactPtr & con
     }
 }
 
+//TODO
+void VideoContentHandler::setScreenParam(bool sendScreen, QRect region)
+{
+    d->contentHandler->setScreenParam(sendScreen, region);
+}
+
 //END VideoContentHandler

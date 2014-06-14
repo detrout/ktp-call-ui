@@ -21,6 +21,7 @@
       <text>Media</text>
       <Action name="sendVideo" />
       <Action name="mute" />
+      <Action name="sendScreen" />
     </Menu>
   </MenuBar>
 

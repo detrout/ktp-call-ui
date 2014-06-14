@@ -40,6 +40,9 @@ public:
     virtual BaseSinkController *createSinkController(const QGst::PadPtr & srcPad);
     virtual void releaseSinkControllerData(BaseSinkController *ctrl);
 
+    // TODO
+    void setScreenParam(bool sendScreen, QRect region){};
+
 protected:
     virtual bool startSending();
     virtual void stopSending();

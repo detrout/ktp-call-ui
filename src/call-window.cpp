@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "call-window.h"
-#include "ui_call-window.h"
+//#include "ui_call-window.h"
 
 #include "status-area.h"
 #include "dtmf-handler.h"
@@ -68,6 +68,7 @@ struct CallWindow::Private
     KAction *hangupAction;
     KAction *goToSystemTrayAction;
     KAction *restoreAction;
+    KAction *sendScreen; //TODO
 
     VideoDisplayFlags currentVideoDisplayState;
     VideoContentHandler *videoContentHandler;
@@ -320,34 +321,34 @@ void CallWindow::onRemoteVideoSendingStateChanged(const Tp::ContactPtr & contact
     }
 }
 
-// QGst::ElementPtr CallWindow::tryVideoSink(const char *videoSink)
-// {
-//     QGst::ElementPtr sink = QGst::ElementFactory::make(videoSink);
-//     if (!sink) {
-//         kDebug() << "Could not make video sink" << videoSink;
-//         return sink;
-//      }
-//
-//     if (!sink->setState(QGst::StateReady)) {
-//         kDebug() << "Video sink" << videoSink << "does not want to become ready";
-//         return QGst::ElementPtr();
-//     }
-//
-//     kDebug() << "Using video sink" << videoSink;
-//     sink->setState(QGst::StateNull);
-//     return sink;
-// }
-//
-// QGst::ElementPtr CallWindow::constructVideoSink()
-// {
-//     QGst::ElementPtr sink = tryVideoSink("xvimagesink");
-//     if (!sink) {
-//         sink = tryVideoSink("ximagesink");
-//     }
-//     sink->setProperty("force-aspect-ratio", true);
-//     return sink;
-//
-// }
+/*QGst::ElementPtr CallWindow::tryVideoSink(const char *videoSink)
+{
+    QGst::ElementPtr sink = QGst::ElementFactory::make(videoSink);
+    if (!sink) {
+        kDebug() << "Could not make video sink" << videoSink;
+        return sink;
+     }
+
+    if (!sink->setState(QGst::StateReady)) {
+        kDebug() << "Video sink" << videoSink << "does not want to become ready";
+        return QGst::ElementPtr();
+    }
+
+    kDebug() << "Using video sink" << videoSink;
+    sink->setState(QGst::StateNull);
+    return sink;
+}
+
+QGst::ElementPtr CallWindow::constructVideoSink()
+{
+    QGst::ElementPtr sink = tryVideoSink("xvimagesink");
+    if (!sink) {
+        sink = tryVideoSink("ximagesink");
+    }
+    sink->setProperty("force-aspect-ratio", true);
+    return sink;
+
+}*/
 void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
 {
     VideoDisplayFlags oldState = d->currentVideoDisplayState;
@@ -388,6 +389,7 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
         //d->ui.callStackedWidget->setCurrentIndex(1);
         d->qmlUi->showVideo(true);
 
+// TODO show/hide video preview
 //         if (newState.testFlag(LocalVideoPreview)) {
 //             //d->ui.videoPreviewWidget->show();
 //         } else {
@@ -460,6 +462,15 @@ void CallWindow::setupActions()
     connect(d->qmlUi,SIGNAL(holdClicked()),SLOT(hold()));
     //Hangup
     connect(d->qmlUi,SIGNAL(hangupClicked()),SLOT(hangup()));
+
+
+
+    //TODO
+    d->sendScreen = new KAction(i18nc("@action", "Send Screen"), this);
+    d->sendScreen->setEnabled(true);
+    connect(d->sendScreen, SIGNAL(triggered()), SLOT(selectScreen()));
+    actionCollection()->addAction("sendScreen", d->sendScreen);
+
 }
 
 void CallWindow::checkEnableDtmf()
@@ -644,4 +655,26 @@ void CallWindow::setupQmlUi()
 {
     d->qmlUi = new QmlInterface( this );
     setCentralWidget(d->qmlUi);
+}
+
+//TODO SÓLO ES UNA PRUEBA:
+void CallWindow::selectScreen(void)
+{
+    QRect rect(1000, 500, 100, 100);
+    d->videoContentHandler->setScreenParam(true, rect);
+
+    Tp::PendingOperation *holdRequest;
+    holdRequest = d->callChannel->requestHold(true);
+
+    QEventLoop loop(this);
+
+    QObject::connect(holdRequest, SIGNAL(finished(Tp::PendingOperation*)), &loop, SLOT(quit()));
+
+    loop.exec();
+
+
+    holdRequest = d->callChannel->requestHold(false);
+    QObject::connect(holdRequest, SIGNAL(finished(Tp::PendingOperation*)), &loop, SLOT(quit()));
+    loop.exec();
+
 }

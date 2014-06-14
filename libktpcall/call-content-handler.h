@@ -87,6 +87,9 @@ public:
     void linkRemoteMemberVideoSink(const Tp::ContactPtr & contact, const QGst::ElementPtr & sink);
     void unlinkRemoteMemberVideoSink(const Tp::ContactPtr & contact);
 
+    //TODO
+    void setScreenParam(bool sendScreen, QRect region);
+
 private:
     friend class CallChannelHandler;
     VideoContentHandler(KTpCallPrivate::TfVideoContentHandler *handler, QObject *parent);

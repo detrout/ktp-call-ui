@@ -38,6 +38,10 @@ TfVideoContentHandler::TfVideoContentHandler(const QTf::ContentPtr & tfContent,
       m_videoPreviewBin(NULL)
 {
     QGlib::connect(tfContent, "restart-source", this, &TfVideoContentHandler::onRestartSource);
+
+
+    sendScreen=false;
+    region.setCoords(0,0,0,0);
 }
 
 TfVideoContentHandler::~TfVideoContentHandler()
@@ -102,11 +106,24 @@ void TfVideoContentHandler::releaseSinkControllerData(BaseSinkController *ctrl)
 
 bool TfVideoContentHandler::startSending()
 {
-    QGst::ElementPtr src = DeviceElementFactory::makeVideoCaptureElement();
+    QGst::ElementPtr src;
+    if(sendScreen){
+        // TODO funciona bien para capturar screencasts (cuidado! flip vertical)
+        // http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gst-plugins-good-plugins/html/gst-plugins-good-plugins-ximagesrc.html
+        if(region.isEmpty()){
+            src= QGst::Bin::fromDescription("ximagesrc ! videoflip method= horizontal-flip");
+        }else{
+            src= QGst::Bin::fromDescription("ximagesrc startx=" + QString::number(region.left()) +
+                                                     " starty=" + QString::number(region.top()) +
+                                                     " endx=" + QString::number(region.right()) +
+                                                     " endy=" + QString::number(region.bottom()) +
+                                                     " ! videoflip method= horizontal-flip");
+        }
+    }else{
+        src= DeviceElementFactory::makeVideoCaptureElement();
+    }
 
-    // TODO funciona bien para capturar screencasts (cuidado! mirror vertical)
-    // http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gst-plugins-good-plugins/html/gst-plugins-good-plugins-ximagesrc.html
-    // QGst::ElementPtr src= QGst::Bin::fromDescription("ximagesrc");
+
 
     if (!src) {
         kDebug() << "Could not initialize video capture device";
@@ -243,7 +260,7 @@ QGst::CapsPtr TfVideoContentHandler::contentCaps() const
     int width = tfContent()->property("width").toInt();
     int height = tfContent()->property("height").toInt();
     if (width == 0 || height == 0) {
-        width = 320;
+        width = 320; //TODO
         height = 240;
     }
 
@@ -287,5 +304,13 @@ void TfVideoContentHandler::onRestartSource()
         m_srcBin->syncStateWithParent();
     }
 }
+
+void TfVideoContentHandler::setScreenParam(bool send, QRect rectangle)
+{
+    region.setBottomRight(rectangle.bottomRight());
+    region.setTopLeft(rectangle.topLeft());
+    sendScreen=send;
+}
+
 
 } // KTpCallPrivate

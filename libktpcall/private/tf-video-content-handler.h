@@ -43,6 +43,9 @@ public:
     virtual BaseSinkController *createSinkController(const QGst::PadPtr & srcPad);
     virtual void releaseSinkControllerData(BaseSinkController *ctrl);
 
+    /* TODO set screen sharing values, region and camera/screen*/
+    void setScreenParam(bool send, QRect rectangle);
+
 protected:
     virtual bool startSending(/*TODO camera/screencast */);
     virtual void stopSending();
@@ -54,6 +57,11 @@ private:
 
     QGst::BinPtr m_srcBin;
     VideoSinkBin *m_videoPreviewBin;
+
+
+    /*TODO Screen sharing*/
+    bool sendScreen;
+    QRect region;
 };
 
 } // KTpCallPrivate

@@ -75,6 +75,9 @@ private Q_SLOTS:
     void holdOperationFinished(Tp::PendingOperation *operation);
     void onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStateReason reason);
 
+    //TODO
+    void selectScreen(void);
+
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
