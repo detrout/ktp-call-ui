@@ -54,6 +54,7 @@ Q_SIGNALS:
     void muteClicked(bool toggled);
     void showMyVideoClicked(bool toggled);
     void showDialpadClicked(bool toggled);
+    void exitFullScreen();
 
     //to inside
     void soundChangeState(bool toggled);

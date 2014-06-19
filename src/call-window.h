@@ -77,14 +77,14 @@ private Q_SLOTS:
 
     //TODO
     void selectScreen(bool checked);
-    void fullScreen(bool checked);
+    void fullScreen();
     void hideWithSystemTray();
     void showWithSystemTray();
 
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
-    
+
 private:
     struct Private;
     Private *const d;

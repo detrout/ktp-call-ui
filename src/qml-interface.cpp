@@ -82,6 +82,7 @@ void QmlInterface::setupSignals()
     connect(rootObject(), SIGNAL(soundClicked(bool)), this, SIGNAL(muteClicked(bool)));
     connect(rootObject(), SIGNAL(showMyVideoClicked(bool)), this, SIGNAL(showMyVideoClicked(bool)));
     connect(rootObject(), SIGNAL(showDialpadClicked(bool)), this, SIGNAL(showDialpadClicked(bool)));
+    connect(rootObject(), SIGNAL(exitFullScreen()), this, SIGNAL(exitFullScreen()));
 
     //logic->GUI
     connect(this, SIGNAL(soundChangeState(bool)),rootObject(), SIGNAL(soundChangeState(bool)));

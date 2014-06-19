@@ -18,7 +18,7 @@
 */
 #include "call-window.h"
 //#include "ui_call-window.h"
-#include "selectionwindow.h"
+#include "selection-window.h"
 
 #include "status-area.h"
 #include "dtmf-handler.h"
@@ -70,7 +70,7 @@ struct CallWindow::Private
     KAction *goToSystemTrayAction;
     KAction *restoreAction;
     KToggleAction *sendScreen; //TODO
-    KToggleAction *fullScreen;
+    KAction *fullScreen;
 
     VideoDisplayFlags currentVideoDisplayState;
     VideoContentHandler *videoContentHandler;
@@ -473,9 +473,9 @@ void CallWindow::setupActions()
     connect(d->sendScreen, SIGNAL(toggled(bool)), SLOT(selectScreen(bool)));
     actionCollection()->addAction("sendScreen", d->sendScreen);
 
-    d->fullScreen = new KToggleAction(i18nc("@action", "Full Screen"), this);
+    d->fullScreen = new KAction(i18nc("@action", "Full Screen"), this);
     d->fullScreen->setEnabled(true);
-    connect(d->fullScreen, SIGNAL(toggled(bool)), SLOT(fullScreen(bool)));
+    connect(d->fullScreen, SIGNAL(triggered()), SLOT(fullScreen()));
     actionCollection()->addAction("fullScreen", d->fullScreen);
 
 }
@@ -663,8 +663,7 @@ void CallWindow::setupQmlUi()
     setCentralWidget(d->qmlUi);
 }
 
-
-//TODO SÓLO ES UNA PRUEBA:
+//TODO
 void CallWindow::selectScreen(bool checked)
 {
     QRect rect(0,0,0,0);
@@ -679,31 +678,24 @@ void CallWindow::selectScreen(bool checked)
     holdRequest = d->callChannel->requestHold(true);
 
     QEventLoop loop(this);
-
     QObject::connect(holdRequest, SIGNAL(finished(Tp::PendingOperation*)), &loop, SLOT(quit()));
-
     loop.exec();
-
-
     holdRequest = d->callChannel->requestHold(false);
     QObject::connect(holdRequest, SIGNAL(finished(Tp::PendingOperation*)), &loop, SLOT(quit()));
     loop.exec();
 }
 
-void CallWindow::fullScreen(bool checked)
+void CallWindow::fullScreen()
 {
-        //TODO quitarle esta mierda que es de prueba para ver si tira (sí tira)
-    d->qmlUi->setShowDialpadEnabled(true);
-    d->showDtmfAction->setEnabled(true);
-    connect(d->showDtmfAction, SIGNAL(toggled(bool)), SLOT(fullScreen(bool)));
-        //-------------------------------------------------------------------------------------------
 
-    if(checked){
+    if(!d->qmlUi->isFullScreen()){
+        connect(d->qmlUi, SIGNAL(exitFullScreen()), SLOT(fullScreen()));
         d->qmlUi->setWindowFlags(Qt::Window);
         d->qmlUi->showFullScreen();
         hide();
     }
     else{
+        disconnect(d->qmlUi, SIGNAL(exitFullScreen()),this, SLOT(fullScreen()));
         d->qmlUi->setWindowFlags(Qt::Widget);
         setCentralWidget(d->qmlUi);
         d->qmlUi->showNormal();

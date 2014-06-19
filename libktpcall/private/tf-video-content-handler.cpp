@@ -117,9 +117,9 @@ bool TfVideoContentHandler::startSending()
                                                      " endy=" + QString::number(region.bottom()) +
                                                      " ! videoflip method= horizontal-flip");
     }else{
-        //src= DeviceElementFactory::makeVideoCaptureElement();
+        src= DeviceElementFactory::makeVideoCaptureElement();
         // TODO Take a better bin for this
-        src= QGst::Bin::fromDescription("autovideosrc");
+        //src= QGst::Bin::fromDescription("autovideosrc");
     }
 
 

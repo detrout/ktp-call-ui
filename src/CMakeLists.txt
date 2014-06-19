@@ -14,10 +14,9 @@ set(ktp-call-ui_SRCS
     systemtray-icon.cpp
     qml-interface.cpp
     dtmf-qml.cpp
-    selectionwindow.cpp
+    selection-window.cpp
 )
 
-kde4_add_ui_files(ktp-call-ui_SRCS call-window.ui)
 kde4_add_executable(ktp-call-ui ${ktp-call-ui_SRCS})
 target_link_libraries(ktp-call-ui
     ${KDE4_KDEUI_LIBS}
