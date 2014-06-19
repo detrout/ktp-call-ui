@@ -26,7 +26,6 @@ SystemTrayIcon::SystemTrayIcon(QObject *parent)
     setCategory(KStatusNotifierItem::SystemServices);
     setStatus(KStatusNotifierItem::Passive);
     setStandardActionsEnabled(false);
-    activateNextTime=true;
 }
 
 void SystemTrayIcon::showCustomMessage()
@@ -36,15 +35,6 @@ void SystemTrayIcon::showCustomMessage()
 
 void SystemTrayIcon::show()
 {
-    if(activateNextTime) {
-        setStatus(KStatusNotifierItem::Active);
-        showCustomMessage();
-    }else{
-        activateNextTime=true;
-    }
-}
-
-void SystemTrayIcon::setActivateNext(bool yesno)
-{
-    activateNextTime=yesno;
+    setStatus(KStatusNotifierItem::Active);
+    showCustomMessage();
 }

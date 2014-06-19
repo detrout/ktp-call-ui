@@ -18,6 +18,7 @@
 */
 #include "call-window.h"
 //#include "ui_call-window.h"
+#include "selectionwindow.h"
 
 #include "status-area.h"
 #include "dtmf-handler.h"
@@ -68,7 +69,8 @@ struct CallWindow::Private
     KAction *hangupAction;
     KAction *goToSystemTrayAction;
     KAction *restoreAction;
-    KAction *sendScreen; //TODO
+    KToggleAction *sendScreen; //TODO
+    KToggleAction *fullScreen;
 
     VideoDisplayFlags currentVideoDisplayState;
     VideoContentHandler *videoContentHandler;
@@ -416,12 +418,12 @@ void CallWindow::setupActions()
 
     d->goToSystemTrayAction = new KAction(i18nc("@action", "Hide window"), this);
     d->goToSystemTrayAction->setEnabled(true);
-    connect(d->goToSystemTrayAction, SIGNAL(triggered(bool)), this, SLOT(hide()));
+    connect(d->goToSystemTrayAction, SIGNAL(triggered()), this, SLOT(hideWithSystemTray()));
     actionCollection()->addAction("goToSystemTray", d->goToSystemTrayAction);
 
     d->restoreAction= new KAction(i18nc("@action", "Restore window"), this);
     d->restoreAction->setEnabled(true);
-    connect(d->restoreAction, SIGNAL(triggered(bool)), this, SLOT(show()));
+    connect(d->restoreAction, SIGNAL(triggered(bool)), this, SLOT(showWithSystemTray()));
     actionCollection()->addAction("restore", d->restoreAction);
 
     //TODO implement this feature
@@ -466,10 +468,15 @@ void CallWindow::setupActions()
 
 
     //TODO
-    d->sendScreen = new KAction(i18nc("@action", "Send Screen"), this);
+    d->sendScreen = new KToggleAction(i18nc("@action", "Send Screen"), this);
     d->sendScreen->setEnabled(true);
-    connect(d->sendScreen, SIGNAL(triggered()), SLOT(selectScreen()));
+    connect(d->sendScreen, SIGNAL(toggled(bool)), SLOT(selectScreen(bool)));
     actionCollection()->addAction("sendScreen", d->sendScreen);
+
+    d->fullScreen = new KToggleAction(i18nc("@action", "Full Screen"), this);
+    d->fullScreen->setEnabled(true);
+    connect(d->fullScreen, SIGNAL(toggled(bool)), SLOT(fullScreen(bool)));
+    actionCollection()->addAction("fullScreen", d->fullScreen);
 
 }
 
@@ -523,7 +530,7 @@ void CallWindow::hangup()
 
 void CallWindow::closeEvent(QCloseEvent *event)
 {
-    systemtrayicon->setActivateNext(false);
+//     systemtrayicon->setActivateNext(false);
     if (!d->callEnded) {
         kDebug() << "Ignoring close event";
         hangup();
@@ -633,36 +640,41 @@ void CallWindow::setupSystemTray()
     systemtrayicon->setToolTip("call-start", windowTitle(),"");
 
     //Restore when left click
-    connect(systemtrayicon, SIGNAL(activateRequested(bool,QPoint)), this, SLOT(show()));
+    connect(systemtrayicon, SIGNAL(activateRequested(bool,QPoint)), this, SLOT(showWithSystemTray()));
 
     systemtrayicon->setContextMenu(trayIconMenu);
 }
 
-void CallWindow::showEvent(QShowEvent* event)
+void CallWindow::hideWithSystemTray()
 {
-    event->accept();
-    systemtrayicon->setStatus(KStatusNotifierItem::Passive);
+    systemtrayicon->show();
+    hide();
+}
 
-}
-void CallWindow::hideEvent(QHideEvent* event)
+void CallWindow::showWithSystemTray()
 {
-    if(isHidden()){
-        systemtrayicon->show();
-    }
-    event->accept();
+    systemtrayicon->setStatus(KStatusNotifierItem::Passive);
+    show();
 }
+
 void CallWindow::setupQmlUi()
 {
     d->qmlUi = new QmlInterface( this );
     setCentralWidget(d->qmlUi);
 }
 
-//TODO SÓLO ES UNA PRUEBA:
-void CallWindow::selectScreen(void)
-{
-    QRect rect(1000, 500, 100, 100);
-    d->videoContentHandler->setScreenParam(true, rect);
 
+//TODO SÓLO ES UNA PRUEBA:
+void CallWindow::selectScreen(bool checked)
+{
+    QRect rect(0,0,0,0);
+    if(checked){
+        hide();
+        SelectionWindow *wind= new SelectionWindow(this);
+        rect=wind->getShape();
+        delete wind;
+    }
+    d->videoContentHandler->setScreenParam(checked, rect);
     Tp::PendingOperation *holdRequest;
     holdRequest = d->callChannel->requestHold(true);
 
@@ -676,5 +688,26 @@ void CallWindow::selectScreen(void)
     holdRequest = d->callChannel->requestHold(false);
     QObject::connect(holdRequest, SIGNAL(finished(Tp::PendingOperation*)), &loop, SLOT(quit()));
     loop.exec();
-
 }
+
+void CallWindow::fullScreen(bool checked)
+{
+        //TODO quitarle esta mierda que es de prueba para ver si tira (sí tira)
+    d->qmlUi->setShowDialpadEnabled(true);
+    d->showDtmfAction->setEnabled(true);
+    connect(d->showDtmfAction, SIGNAL(toggled(bool)), SLOT(fullScreen(bool)));
+        //-------------------------------------------------------------------------------------------
+
+    if(checked){
+        d->qmlUi->setWindowFlags(Qt::Window);
+        d->qmlUi->showFullScreen();
+        hide();
+    }
+    else{
+        d->qmlUi->setWindowFlags(Qt::Widget);
+        setCentralWidget(d->qmlUi);
+        d->qmlUi->showNormal();
+        show();
+    }
+}
+

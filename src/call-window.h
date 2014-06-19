@@ -76,14 +76,15 @@ private Q_SLOTS:
     void onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStateReason reason);
 
     //TODO
-    void selectScreen(void);
+    void selectScreen(bool checked);
+    void fullScreen(bool checked);
+    void hideWithSystemTray();
+    void showWithSystemTray();
 
 
 protected:
     virtual void closeEvent(QCloseEvent *event);
-    virtual void hideEvent(QHideEvent *event);
-    virtual void showEvent(QShowEvent *event);
-
+    
 private:
     struct Private;
     Private *const d;

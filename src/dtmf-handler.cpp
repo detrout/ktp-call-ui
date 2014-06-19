@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "dtmf-handler.h"
-#include "dtmf-widget.h"
+#include "dtmf-qml.h"
 
 struct DtmfHandler::Private
 {
@@ -33,11 +33,11 @@ DtmfHandler::~DtmfHandler()
     delete d;
 }
 
-void DtmfHandler::connectDtmfWidget(DtmfWidget *dtmfWidget)
-{
-    connect(dtmfWidget, SIGNAL(startSendDtmfEvent(Tp::DTMFEvent)), SLOT(onStartSendDtmfEvent(Tp::DTMFEvent)));
-    connect(dtmfWidget, SIGNAL(stopSendDtmfEvent()), SLOT(onStopSendDtmfEvent()));
-}
+// void DtmfHandler::connectDtmfWidget(DtmfWidget *dtmfWidget)
+// {
+//     connect(dtmfWidget, SIGNAL(startSendDtmfEvent(Tp::DTMFEvent)), SLOT(onStartSendDtmfEvent(Tp::DTMFEvent)));
+//     connect(dtmfWidget, SIGNAL(stopSendDtmfEvent()), SLOT(onStopSendDtmfEvent()));
+// }
 
 void DtmfHandler::connectDtmfQml(DtmfQml *dtmfQml)
 {

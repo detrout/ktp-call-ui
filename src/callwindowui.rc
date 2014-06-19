@@ -16,6 +16,7 @@
       <Action name="showMyVideo" />
       <Action name="showDtmf" />
       <Action name="goToSystemTray" />
+      <Action name="fullScreen" />
     </Menu>
     <Menu name="media" >
       <text>Media</text>

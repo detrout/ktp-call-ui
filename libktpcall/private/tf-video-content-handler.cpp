@@ -107,20 +107,19 @@ void TfVideoContentHandler::releaseSinkControllerData(BaseSinkController *ctrl)
 bool TfVideoContentHandler::startSending()
 {
     QGst::ElementPtr src;
+
     if(sendScreen){
         // TODO funciona bien para capturar screencasts (cuidado! flip vertical)
         // http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gst-plugins-good-plugins/html/gst-plugins-good-plugins-ximagesrc.html
-        if(region.isEmpty()){
-            src= QGst::Bin::fromDescription("ximagesrc ! videoflip method= horizontal-flip");
-        }else{
             src= QGst::Bin::fromDescription("ximagesrc startx=" + QString::number(region.left()) +
                                                      " starty=" + QString::number(region.top()) +
                                                      " endx=" + QString::number(region.right()) +
                                                      " endy=" + QString::number(region.bottom()) +
                                                      " ! videoflip method= horizontal-flip");
-        }
     }else{
-        src= DeviceElementFactory::makeVideoCaptureElement();
+        //src= DeviceElementFactory::makeVideoCaptureElement();
+        // TODO Take a better bin for this
+        src= QGst::Bin::fromDescription("autovideosrc");
     }
 
 
@@ -260,8 +259,13 @@ QGst::CapsPtr TfVideoContentHandler::contentCaps() const
     int width = tfContent()->property("width").toInt();
     int height = tfContent()->property("height").toInt();
     if (width == 0 || height == 0) {
-        width = 320; //TODO
-        height = 240;
+         if(sendScreen && region.isValid()){ //TODO adjust the size to the screen part you are sending-> good resolution!
+             width=region.width();
+             height=region.height();
+         }else{//default size
+            width = 320;
+            height = 240;
+         }
     }
 
     int framerate = tfContent()->property("framerate").toInt();
