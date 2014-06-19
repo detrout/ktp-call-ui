@@ -668,7 +668,7 @@ void CallWindow::selectScreen(bool checked)
 {
     QRect rect(0,0,0,0);
     if(checked){
-        hide();
+        hideWithSystemTray();
         SelectionWindow *wind= new SelectionWindow(this);
         rect=wind->getShape();
         delete wind;
