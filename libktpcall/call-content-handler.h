@@ -87,7 +87,7 @@ public:
     void linkRemoteMemberVideoSink(const Tp::ContactPtr & contact, const QGst::ElementPtr & sink);
     void unlinkRemoteMemberVideoSink(const Tp::ContactPtr & contact);
 
-    //TODO
+    //TODO Ekaitz
     void setScreenParam(bool sendScreen, QRect region);
 
 private:

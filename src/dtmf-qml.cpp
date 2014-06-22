@@ -17,20 +17,27 @@
 #include <KLocalizedString>
 #include "dtmf-qml.h"
 
-DtmfQml::DtmfQml(QWidget *parent)
-: QMainWindow(parent)
+struct DtmfQml::Private
 {
-    view.setSource(QUrl::fromLocalFile("/home/kaditx/projects/qmlGui/core/Dtmf.qml"));
-    view.setResizeMode(QDeclarativeView::SizeRootObjectToView);
-    setFixedSize(view.size());
+    QDeclarativeView *view;
+};
+
+DtmfQml::DtmfQml(QWidget *parent)
+: QMainWindow(parent), d(new Private)
+{
+    d->view=new QDeclarativeView(this);
+    d->view->setSource(QUrl::fromLocalFile("/home/kaditx/projects/qmlGui/core/Dtmf.qml"));
+    d->view->setResizeMode(QDeclarativeView::SizeRootObjectToView);
+    setFixedSize(d->view->size());
     setWindowTitle( i18n("Dialpad"));
-    setCentralWidget(&view);
-    connect(view.rootObject(), SIGNAL(release(QString)), this, SIGNAL(stopSendDtmfEvent()));
-    connect(view.rootObject(), SIGNAL(press(QString)), this, SLOT(onButtonPressed(QString)));
+    setCentralWidget(d->view);
+    connect(d->view->rootObject(), SIGNAL(release(QString)), this, SIGNAL(stopSendDtmfEvent()));
+    connect(d->view->rootObject(), SIGNAL(press(QString)), this, SLOT(onButtonPressed(QString)));
 }
 
 DtmfQml::~DtmfQml()
 {
+    delete d;
 }
 
 void DtmfQml::onButtonPressed(QString digit)

@@ -40,7 +40,10 @@ public:
     virtual BaseSinkController *createSinkController(const QGst::PadPtr & srcPad);
     virtual void releaseSinkControllerData(BaseSinkController *ctrl);
 
-    // TODO
+    /*! Defined to avoid errors but not useful, it is for the \a TfVideoContentHandler, it is necessary to make it accesible from the
+     * parent \a TfContentHandler.
+     * \a Ekaitz.
+     */
     void setScreenParam(bool sendScreen, QRect region){};
 
 protected:

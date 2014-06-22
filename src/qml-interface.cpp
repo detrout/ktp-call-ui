@@ -23,13 +23,22 @@
 
 #include "qml-interface.h"
 
-QmlInterface::QmlInterface(QWidget* parent): QDeclarativeView(parent)
+struct QmlInterface::Private
 {
-    surface = new QGst::Ui::GraphicsVideoSurface(this);
-    rootContext()->setContextProperty(QLatin1String("videoSurface"), surface);
+    /*! Manages the video preview player*/
+    QGst::Ui::GraphicsVideoSurface *surfacePreview;
+    /*! Manages the main video player*/
+    QGst::Ui::GraphicsVideoSurface *surface;
+};
 
-    surfacePreview = new QGst::Ui::GraphicsVideoSurface(this);
-    rootContext()->setContextProperty(QLatin1String("videoPreviewSurface"), surfacePreview);
+
+QmlInterface::QmlInterface(QWidget* parent): QDeclarativeView(parent), d(new Private)
+{
+    d->surface = new QGst::Ui::GraphicsVideoSurface(this);
+    rootContext()->setContextProperty(QLatin1String("videoSurface"), d->surface);
+
+    d->surfacePreview = new QGst::Ui::GraphicsVideoSurface(this);
+    rootContext()->setContextProperty(QLatin1String("videoPreviewSurface"), d->surfacePreview);
 
     setSource(QUrl::fromLocalFile("/home/kaditx/projects/qmlGui/Main.qml"));
     setResizeMode(QDeclarativeView::SizeRootObjectToView);
@@ -44,12 +53,12 @@ void QmlInterface::setLabel(const QString name, const QString imageUrl)
 
 QGst::ElementPtr QmlInterface::getVideoSink()
 {
-    return( surface->videoSink());
+    return d->surface->videoSink();
 }
 
 QGst::ElementPtr QmlInterface::getVideoPreviewSink()
 {
-    return surfacePreview->videoSink();
+    return d->surfacePreview->videoSink();
 }
 void QmlInterface::showVideo(bool show)
 {
@@ -88,4 +97,9 @@ void QmlInterface::setupSignals()
     connect(this, SIGNAL(soundChangeState(bool)),rootObject(), SIGNAL(soundChangeState(bool)));
     connect(this, SIGNAL(showMyVideoChangeState(bool)),rootObject(), SIGNAL(showMyVideoChangeState(bool)));
     connect(this, SIGNAL(showDialpadChangeState(bool)),rootObject(), SIGNAL(showDialpadChangeState(bool)));
+}
+
+QmlInterface::~QmlInterface()
+{
+    delete d;
 }

@@ -58,19 +58,20 @@ struct CallWindow::Private
     StatusArea *statusArea;
     bool callEnded;
 
-    QmlInterface *qmlUi; //TODO
-    DtmfQml *dtmfQml; //TODO
+    QmlInterface *qmlUi; //TODO Ekaitz
+    DtmfQml *dtmfQml; //TODO Ekaitz
 
-    KToggleAction *showMyVideoAction;
+    KToggleAction *showMyVideoAction; //TODO Ekaitz
     KToggleAction *showDtmfAction;
     KToggleAction *sendVideoAction;
     KToggleAction *muteAction;
     KAction *holdAction;
     KAction *hangupAction;
-    KAction *goToSystemTrayAction;
-    KAction *restoreAction;
-    KToggleAction *sendScreen; //TODO
-    KAction *fullScreen;
+    KAction *goToSystemTrayAction; //TODO Ekaitz
+    KAction *restoreAction;//TODO Ekaitz
+    KToggleAction *sendScreenAction; //TODO Ekaitz
+    KAction *fullScreenAction;//TODO Ekaitz
+    SystemTrayIcon *systemtrayicon;//TODO Ekaitz
 
     VideoDisplayFlags currentVideoDisplayState;
     VideoContentHandler *videoContentHandler;
@@ -88,6 +89,7 @@ CallWindow::CallWindow(const Tp::CallChannelPtr & callChannel)
     //create ui
     setupQmlUi();
     d->statusArea = new StatusArea(statusBar());
+    // TODO Ekaitz. (Error widget is deleted)
     //d->ui.errorWidget->hide();
     //d->ui.errorWidget->setMessageType(KMessageWidget::Error);
     setupActions();
@@ -323,7 +325,8 @@ void CallWindow::onRemoteVideoSendingStateChanged(const Tp::ContactPtr & contact
     }
 }
 
-/*QGst::ElementPtr CallWindow::tryVideoSink(const char *videoSink)
+/* TODO Ekaitz.
+QGst::ElementPtr CallWindow::tryVideoSink(const char *videoSink)
 {
     QGst::ElementPtr sink = QGst::ElementFactory::make(videoSink);
     if (!sink) {
@@ -391,7 +394,7 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
         //d->ui.callStackedWidget->setCurrentIndex(1);
         d->qmlUi->showVideo(true);
 
-// TODO show/hide video preview
+// TODO Ekaitz. show/hide video preview
 //         if (newState.testFlag(LocalVideoPreview)) {
 //             //d->ui.videoPreviewWidget->show();
 //         } else {
@@ -416,7 +419,7 @@ void CallWindow::setupActions()
     connect(d->showDtmfAction, SIGNAL(toggled(bool)), SLOT(toggleDtmf(bool)));
     actionCollection()->addAction("showDtmf", d->showDtmfAction);
 
-    d->goToSystemTrayAction = new KAction(i18nc("@action", "Hide window"), this);
+    d->goToSystemTrayAction = new KAction(KIcon("view-restore"), i18nc("@action", "Hide window"), this);
     d->goToSystemTrayAction->setEnabled(true);
     connect(d->goToSystemTrayAction, SIGNAL(triggered()), this, SLOT(hideWithSystemTray()));
     actionCollection()->addAction("goToSystemTray", d->goToSystemTrayAction);
@@ -449,7 +452,7 @@ void CallWindow::setupActions()
     actionCollection()->addAction("hangup", d->hangupAction);
 
     //QML-UI <---> Actions
-    //Show my video
+    //Show my video. TODO Ekaitz.
     connect(d->showMyVideoAction, SIGNAL(toggled(bool)), d->qmlUi, SIGNAL(showMyVideoChangeState(bool)));
     connect(d->qmlUi,SIGNAL(showMyVideoClicked(bool)), d->showMyVideoAction, SLOT(setChecked(bool)));
     //Show dialpad
@@ -467,16 +470,16 @@ void CallWindow::setupActions()
 
 
 
-    //TODO
-    d->sendScreen = new KToggleAction(i18nc("@action", "Send Screen"), this);
-    d->sendScreen->setEnabled(true);
-    connect(d->sendScreen, SIGNAL(toggled(bool)), SLOT(selectScreen(bool)));
-    actionCollection()->addAction("sendScreen", d->sendScreen);
+    //TODO Ekaitz.
+    d->sendScreenAction = new KToggleAction(i18nc("@action", "Send Screen"), this);
+    d->sendScreenAction->setEnabled(true);
+    connect(d->sendScreenAction, SIGNAL(toggled(bool)), SLOT(selectScreen(bool)));
+    actionCollection()->addAction("sendScreen", d->sendScreenAction);
 
-    d->fullScreen = new KAction(i18nc("@action", "Full Screen"), this);
-    d->fullScreen->setEnabled(true);
-    connect(d->fullScreen, SIGNAL(triggered()), SLOT(fullScreen()));
-    actionCollection()->addAction("fullScreen", d->fullScreen);
+    d->fullScreenAction = new KAction(KIcon("view-fullscreen"),i18nc("@action", "Full Screen"), this);
+    d->fullScreenAction->setEnabled(true);
+    connect(d->fullScreenAction, SIGNAL(triggered()), SLOT(fullScreen()));
+    actionCollection()->addAction("fullScreen", d->fullScreenAction);
 
 }
 
@@ -501,7 +504,11 @@ void CallWindow::checkEnableDtmf()
 
 void CallWindow::toggleDtmf(bool checked)
 {
+    if(d->qmlUi->isFullScreen()){
+        fullScreen();
+    }
     if(checked){
+        fullScreen();
         d->dtmfQml->show();
     }
     else{
@@ -530,7 +537,6 @@ void CallWindow::hangup()
 
 void CallWindow::closeEvent(QCloseEvent *event)
 {
-//     systemtrayicon->setActivateNext(false);
     if (!d->callEnded) {
         kDebug() << "Ignoring close event";
         hangup();
@@ -559,6 +565,7 @@ void CallWindow::hold()
 void CallWindow::holdOperationFinished(Tp::PendingOperation* operation)
 {
     if (operation->isError()) {
+        //TODO
         //d->ui.errorWidget->setText(i18nc("@info:error", "There was an error while pausing the call"));
         //d->ui.errorWidget->animatedShow();
         return;
@@ -616,10 +623,13 @@ void CallWindow::onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStat
     }
 }
 
+/*! Sets up the \a SystemTrayIcon and its \a KMenu.
+ * \a Ekaitz.
+ */
 void CallWindow::setupSystemTray()
 {
     KMenu *trayIconMenu=new KMenu(this);
-    systemtrayicon=new SystemTrayIcon(this);
+    d->systemtrayicon=new SystemTrayIcon(this);
 
     //Save the title
     trayIconMenu->setTitle(windowTitle());
@@ -631,32 +641,49 @@ void CallWindow::setupSystemTray()
     //Actions
     trayIconMenu->addAction(d->hangupAction);
     trayIconMenu->addAction(d->holdAction);
+    trayIconMenu->addSeparator();
     trayIconMenu->addAction(d->sendVideoAction);
     trayIconMenu->addAction(d->muteAction);
+    trayIconMenu->addAction(d->sendScreenAction);
     trayIconMenu->addAction(d->restoreAction);
     trayIconMenu->addAction(KStandardAction::close(this, SLOT(close()), actionCollection()));
 
-    systemtrayicon->setAssociatedWidget(this);
-    systemtrayicon->setToolTip("call-start", windowTitle(),"");
+    d->systemtrayicon->setAssociatedWidget(this);
+    d->systemtrayicon->setToolTip("call-start", windowTitle(),"");
 
     //Restore when left click
-    connect(systemtrayicon, SIGNAL(activateRequested(bool,QPoint)), this, SLOT(showWithSystemTray()));
+    connect(d->systemtrayicon, SIGNAL(activateRequested(bool,QPoint)), this, SLOT(showWithSystemTray()));
 
-    systemtrayicon->setContextMenu(trayIconMenu);
+    d->systemtrayicon->setContextMenu(trayIconMenu);
 }
 
+/*! Hides window and shows the \a SystemTrayIcon if it's hidden.
+ * \a Ekaitz.
+ * \sa showWithSystemTray()
+ */
 void CallWindow::hideWithSystemTray()
 {
-    systemtrayicon->show();
+    if(d->systemtrayicon->status()==KStatusNotifierItem::Passive){
+        d->systemtrayicon->show();
+    }
     hide();
 }
 
+/*! Shows window and hides the \a SystemTrayIcon if it's shown.
+ * \a Ekaitz
+ * \sa hideWithSystemTray()
+ */
 void CallWindow::showWithSystemTray()
 {
-    systemtrayicon->setStatus(KStatusNotifierItem::Passive);
+    if(d->systemtrayicon->status()==KStatusNotifierItem::Active){
+        d->systemtrayicon->setStatus(KStatusNotifierItem::Passive);
+    }
     show();
 }
 
+/*! Creates a QmlInterface and sets it as central widget.
+ * \a Ekaitz.
+ */
 void CallWindow::setupQmlUi()
 {
     d->qmlUi = new QmlInterface( this );
@@ -677,29 +704,32 @@ void CallWindow::selectScreen(bool checked)
     Tp::PendingOperation *holdRequest;
     holdRequest = d->callChannel->requestHold(true);
 
-    QEventLoop loop(this);
+    QEventLoop loop;
     QObject::connect(holdRequest, SIGNAL(finished(Tp::PendingOperation*)), &loop, SLOT(quit()));
     loop.exec();
     holdRequest = d->callChannel->requestHold(false);
-    QObject::connect(holdRequest, SIGNAL(finished(Tp::PendingOperation*)), &loop, SLOT(quit()));
-    loop.exec();
+    QObject::connect(holdRequest, SIGNAL(finished(Tp::PendingOperation*)), this, SLOT(holdOperationFinished(Tp::PendingOperation*)));
 }
 
+/*!This function makes the central QML widget go to full screen. To exit fullScreen mode, press \a Esc.
+ * \a Ekaitz.
+ * \sa QmlInterface::exitFullScreen(), hideWithSystemTray(), showWithSystemTray().
+ */
 void CallWindow::fullScreen()
 {
 
-    if(!d->qmlUi->isFullScreen()){
-        connect(d->qmlUi, SIGNAL(exitFullScreen()), SLOT(fullScreen()));
-        d->qmlUi->setWindowFlags(Qt::Window);
-        d->qmlUi->showFullScreen();
-        hide();
-    }
-    else{
+    if(d->qmlUi->isFullScreen()){
         disconnect(d->qmlUi, SIGNAL(exitFullScreen()),this, SLOT(fullScreen()));
         d->qmlUi->setWindowFlags(Qt::Widget);
         setCentralWidget(d->qmlUi);
         d->qmlUi->showNormal();
         show();
+    }
+    else{
+        connect(d->qmlUi, SIGNAL(exitFullScreen()), SLOT(fullScreen()));
+        d->qmlUi->setWindowFlags(Qt::Window);
+        d->qmlUi->showFullScreen();
+        hide();
     }
 }
 

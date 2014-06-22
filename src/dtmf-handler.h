@@ -29,7 +29,7 @@ public:
     virtual ~DtmfHandler();
 
     //void connectDtmfWidget(DtmfWidget *dtmfWidget);
-    void connectDtmfQml(DtmfQml *dtmfQml);//TODO
+    void connectDtmfQml(DtmfQml *dtmfQml);//TODO Ekaitz.
 
 private Q_SLOTS:
     void onStartSendDtmfEvent(Tp::DTMFEvent event);

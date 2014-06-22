@@ -15,6 +15,9 @@
     <Menu name="view">
       <Action name="showMyVideo" />
       <Action name="showDtmf" />
+    </Menu>
+    <Menu name="window"> <!--TODO EKAITZ /-->
+      <text>Window</text>
       <Action name="goToSystemTray" />
       <Action name="fullScreen" />
     </Menu>
@@ -25,17 +28,4 @@
       <Action name="sendScreen" />
     </Menu>
   </MenuBar>
-
-  <!--<ToolBar name="mainToolBar" position="bottom" >
-    <text>Main Toolbar</text>
-    <Action name="hangup" />
-    <Action name="hold" />
-    <Separator />
-    <Action name="showDtmf" />
-    <Action name="showMyVideo" />
-    <Separator />
-    <Action name="mute" />
-    <Action name="sendVideo" />
-  </ToolBar>-->
-
 </gui>

@@ -111,7 +111,7 @@ void VideoContentHandler::unlinkRemoteMemberVideoSink(const Tp::ContactPtr & con
     }
 }
 
-//TODO
+//! Sends screen sharing parameters to \a TfVideoContentHandler. \a Ekaitz
 void VideoContentHandler::setScreenParam(bool sendScreen, QRect region)
 {
     d->contentHandler->setScreenParam(sendScreen, region);

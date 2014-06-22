@@ -30,7 +30,7 @@ SystemTrayIcon::SystemTrayIcon(QObject *parent)
 
 void SystemTrayIcon::showCustomMessage()
 {
-    showMessage(contextMenu()->title(), i18n("The window has been hidden but the call continues, you can access the menu from the system tray icon."), "call-start", 3000);
+    showMessage(contextMenu()->title(), i18n("The video call window has been hidden, but the call will remain active. Click to restore."), "call-start", 3000);
 }
 
 void SystemTrayIcon::show()

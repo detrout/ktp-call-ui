@@ -51,7 +51,8 @@ public:
     /* Called from the streaming thread when the src pad associated with ctrl is unlinked */
     virtual void releaseSinkControllerData(BaseSinkController *ctrl) = 0;
 
-    /* TODO set screen sharing values, region and camera/screen for tf-video-content-handler*/
+    /* TODO Ekaitz set screen sharing values, region and camera/screen for tf-video-content-handler*/
+    //! Ekaitz
     virtual void setScreenParam(bool sendScreen, QRect region) = 0;
 
 Q_SIGNALS:

@@ -39,6 +39,7 @@ DtmfHandler::~DtmfHandler()
 //     connect(dtmfWidget, SIGNAL(stopSendDtmfEvent()), SLOT(onStopSendDtmfEvent()));
 // }
 
+//! Connects the GUI of the \a Dialpad with the internal logic of \a DtmfHandler. \a Ekaitz
 void DtmfHandler::connectDtmfQml(DtmfQml *dtmfQml)
 {
     connect(dtmfQml, SIGNAL(startSendDtmfEvent(Tp::DTMFEvent)), SLOT(onStartSendDtmfEvent(Tp::DTMFEvent)));

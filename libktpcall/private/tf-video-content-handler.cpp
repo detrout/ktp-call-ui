@@ -108,21 +108,15 @@ bool TfVideoContentHandler::startSending()
 {
     QGst::ElementPtr src;
 
-    if(sendScreen){
-        // TODO funciona bien para capturar screencasts (cuidado! flip vertical)
-        // http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gst-plugins-good-plugins/html/gst-plugins-good-plugins-ximagesrc.html
-            src= QGst::Bin::fromDescription("ximagesrc startx=" + QString::number(region.left()) +
+    if(sendScreen){ //TODO EKAITZ: If the screen sharing is enabled the Source is an ximagesrc
+           src= QGst::Bin::fromDescription("ximagesrc startx=" + QString::number(region.left()) +
                                                      " starty=" + QString::number(region.top()) +
                                                      " endx=" + QString::number(region.right()) +
                                                      " endy=" + QString::number(region.bottom()) +
                                                      " ! videoflip method= horizontal-flip");
     }else{
         src= DeviceElementFactory::makeVideoCaptureElement();
-        // TODO Take a better bin for this
-        //src= QGst::Bin::fromDescription("autovideosrc");
     }
-
-
 
     if (!src) {
         kDebug() << "Could not initialize video capture device";
@@ -259,7 +253,7 @@ QGst::CapsPtr TfVideoContentHandler::contentCaps() const
     int width = tfContent()->property("width").toInt();
     int height = tfContent()->property("height").toInt();
     if (width == 0 || height == 0) {
-         if(sendScreen && region.isValid()){ //TODO adjust the size to the screen part you are sending-> good resolution!
+         if(sendScreen && region.isValid()){ //TODO EKAITZ: adjust the size to the screen part you are sending-> good resolution!
              width=region.width();
              height=region.height();
          }else{//default size
@@ -309,6 +303,14 @@ void TfVideoContentHandler::onRestartSource()
     }
 }
 
+/*! \param send when true screen sharing is activated.
+ *  \param rectangle is the region of the screen.
+ */
+/*! This functions sets the value of the \a rectangle of the screen which will be sent as a video and the \a bool
+ * who says if we are sending screen or the video from the camera. Both variables are evaluated in \a startSending() function and
+ * in \a contentCaps() where the size of the video is selected taking in consideration the size of the rectangle of the screen.
+ * \a Ekaitz.
+ */
 void TfVideoContentHandler::setScreenParam(bool send, QRect rectangle)
 {
     region.setBottomRight(rectangle.bottomRight());

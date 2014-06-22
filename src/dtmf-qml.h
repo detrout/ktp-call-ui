@@ -26,11 +26,16 @@
 #include <QtGui>
 #include <TelepathyQt/Constants>
 
+//! Manages the GUI of the dialpad. \a Ekaitz
+/*! \sa DtmfHandler, CallWindow::toggleDtmf()
+ */
+
 class DtmfQml : public QMainWindow{
     Q_OBJECT
 
 private:
-    QDeclarativeView view;
+    struct Private;
+    Private *const d;
 
 public:
     explicit DtmfQml(QWidget *parent = 0);

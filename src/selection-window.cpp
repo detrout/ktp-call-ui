@@ -17,72 +17,86 @@
 
 #include "selection-window.h"
 
-SelectionWindow::SelectionWindow(QWidget *parent=0): QMainWindow(parent)
+struct SelectionWindow::Private
+{
+    QRubberBand *rubberBand;
+    QLabel *label;
+    QPoint mypoint;
+    QEventLoop loop;
+    QRect shape;
+    QGraphicsDropShadowEffect *shadowEffect;
+};
+
+/*! Makes a semi-transparent window in full screen, and allows selection with the \a rubberBand
+ */
+SelectionWindow::SelectionWindow(QWidget *parent=0): QMainWindow(parent), d(new Private)
 {
     setWindowFlags(Qt::Window);
     QWidget::setAttribute( Qt::WA_TranslucentBackground, true);
-    connect(this, SIGNAL(breakLoop()), &loop, SLOT(quit()));
+    connect(this, SIGNAL(breakLoop()), &d->loop, SLOT(quit()));
 
-    label=new QLabel(this);
-    label->setStyleSheet("background-color: rgba(0, 0, 20, 30);");
-    label->setAttribute(Qt::WA_TransparentForMouseEvents,true);
-    label->setTextFormat(Qt::RichText);
-    label->setText("<h1 align=center>Click and drag to select</h1><h2 align=center><strong>Press Return to Accept or Esc to select full screen</strong></h2>");
-    setCentralWidget(label);
+    d->label=new QLabel(this);
+    d->label->setStyleSheet("background-color: rgba(0, 0, 20, 30);");
+    d->label->setAttribute(Qt::WA_TransparentForMouseEvents,true);
+    d->label->setTextFormat(Qt::RichText);
+    d->label->setText("<h1 align=center>Click and drag to select</h1><h2 align=center><strong>Press Return to Accept or Esc to select full screen</strong></h2>");
+    setCentralWidget(d->label);
 
-    shape.setCoords(0,0,0,0);
+    d->shape.setCoords(0,0,0,0);
 
-    shadowEffect = new QGraphicsDropShadowEffect(this);
-    shadowEffect->setBlurRadius(10.0);
-    shadowEffect->setColor(palette().color(QPalette::HighlightedText));
-    shadowEffect->setOffset(0.0);
-    setGraphicsEffect(shadowEffect);
+    d->shadowEffect = new QGraphicsDropShadowEffect(this);
+    d->shadowEffect->setBlurRadius(10.0);
+    d->shadowEffect->setColor(palette().color(QPalette::HighlightedText));
+    d->shadowEffect->setOffset(0.0);
+    setGraphicsEffect(d->shadowEffect);
 
-    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);//new rectangle band
+    d->rubberBand = new QRubberBand(QRubberBand::Rectangle, this);//new rectangle band
 
 
 }
+
+//! \return size and position of the selected region
 QRect SelectionWindow::getShape()
 {
     showFullScreen();
-    loop.exec();
-    return(shape);
-}
-void SelectionWindow::mousePressEvent(QMouseEvent *event)
-{
-    mypoint = event->pos();
-    rubberBand->setGeometry(QRect(mypoint, QSize()));
-    rubberBand->show();
+    d->loop.exec();
+    return(d->shape);
 }
 
+//! Start the \a rubberBand when click
+void SelectionWindow::mousePressEvent(QMouseEvent *event)
+{
+    d->mypoint = event->pos();
+    d->rubberBand->setGeometry(QRect(d->mypoint, QSize()));
+    d->rubberBand->show();
+}
+
+//! Change the size of the \a rubberBand when drag
 void SelectionWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if(event->buttons()!=Qt::NoButton){
-        rubberBand->setGeometry(QRect(mypoint, event->pos()).normalized());//Area Bounding
+        d->rubberBand->setGeometry(QRect(d->mypoint, event->pos()).normalized());//Area Bounding
     }
 }
 
+//! Set size of the \a rubberBand when release the mouse
 void SelectionWindow::mouseReleaseEvent(QMouseEvent *event)
 {
-    rubberBand->setGeometry(QRect(mypoint, event->pos()).normalized());//Area Bounding
+    d->rubberBand->setGeometry(QRect(d->mypoint, event->pos()).normalized());//Area Bounding
 }
 
-void SelectionWindow::mouseDoubleClickEvent(QMouseEvent* event)
-{
-    //TODO SELECT A WINDOW
-}
-
+//! Press \a return to accept and \a escape to select full-screen
 void SelectionWindow::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
     {
         case Qt::Key_Escape:
-            shape.setSize(size());
+            d->shape.setSize(size());
             Q_EMIT(breakLoop());
             break;
         case Qt::Key_Return:
-            shape.setTopLeft(rubberBand->pos());
-            shape.setSize(rubberBand->size());
+            d->shape.setTopLeft(d->rubberBand->pos());
+            d->shape.setSize(d->rubberBand->size());
             Q_EMIT(breakLoop());
             break;
     }
@@ -90,5 +104,6 @@ void SelectionWindow::keyPressEvent(QKeyEvent *event)
 }
 SelectionWindow::~SelectionWindow()
 {
+    delete d;
 }
 

@@ -31,18 +31,13 @@
 #include <QRect>
 #include <QSize>
 
-
+//! Manages the screen region selection when sharing screen. \a Ekaitz
+/*! \sa CallWindow::selectScreen()
+ */
 
 class SelectionWindow : public QMainWindow
 {
     Q_OBJECT
-private:
-    QRubberBand *rubberBand;
-    QLabel *label;
-    QPoint mypoint;
-    QEventLoop loop;
-    QRect shape;
-    QGraphicsDropShadowEffect *shadowEffect;
 public:
     SelectionWindow(QWidget *parent);
     virtual ~SelectionWindow();
@@ -51,12 +46,14 @@ private:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
-    void mouseDoubleClickEvent(QMouseEvent *event);
     void keyPressEvent(QKeyEvent *event);
 Q_SIGNALS:
     void breakLoop(void);
-
     void returnRegion(QRect);
+
+private:
+    struct Private;
+    Private *const d;
 };
 
 #endif // SELECTIONWINDOW_H

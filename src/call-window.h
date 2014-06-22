@@ -75,7 +75,6 @@ private Q_SLOTS:
     void holdOperationFinished(Tp::PendingOperation *operation);
     void onHoldStatusChanged(Tp::LocalHoldState state, Tp::LocalHoldStateReason reason);
 
-    //TODO
     void selectScreen(bool checked);
     void fullScreen();
     void hideWithSystemTray();
@@ -85,14 +84,12 @@ private Q_SLOTS:
 protected:
     virtual void closeEvent(QCloseEvent *event);
 
+private://TODO EKAITZ
+    void setupSystemTray();
+
 private:
     struct Private;
     Private *const d;
-
-
-private:
-    SystemTrayIcon* systemtrayicon;
-    void setupSystemTray();
 
 };
 
