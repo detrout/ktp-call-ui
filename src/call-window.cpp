@@ -292,6 +292,7 @@ void CallWindow::onContentRemoved(CallContentHandler *contentHandler)
         }
 
         d->statusArea->showVideoStatusIcon(false);
+	d->sendScreenAction->setEnabled(false);
     }
 }
 
