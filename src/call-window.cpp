@@ -395,11 +395,11 @@ void CallWindow::changeVideoDisplayState(VideoDisplayFlags newState)
         d->qmlUi->showVideo(true);
 
 // TODO Ekaitz. show/hide video preview
-//         if (newState.testFlag(LocalVideoPreview)) {
+        if (newState.testFlag(LocalVideoPreview)) {
 //             //d->ui.videoPreviewWidget->show();
 //         } else {
 //             //d->ui.videoPreviewWidget->hide();
-//         }
+        }
     }
 
     d->currentVideoDisplayState = newState;
