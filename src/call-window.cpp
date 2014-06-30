@@ -265,6 +265,7 @@ void CallWindow::onContentAdded(CallContentHandler *contentHandler)
                 SLOT(onRemoteVideoSendingStateChanged(Tp::ContactPtr,bool)));
 
         d->statusArea->showVideoStatusIcon(true);
+	d->sendScreenAction->setEnabled(true);
     }
 }
 
@@ -472,7 +473,7 @@ void CallWindow::setupActions()
 
     //TODO Ekaitz.
     d->sendScreenAction = new KToggleAction(i18nc("@action", "Send Screen"), this);
-    d->sendScreenAction->setEnabled(true);
+    d->sendScreenAction->setEnabled(false); //will be enabled later
     connect(d->sendScreenAction, SIGNAL(toggled(bool)), SLOT(selectScreen(bool)));
     actionCollection()->addAction("sendScreen", d->sendScreenAction);
 
