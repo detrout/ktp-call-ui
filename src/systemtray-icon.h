@@ -33,7 +33,7 @@ public:
     SystemTrayIcon(QObject *parent = 0);
     void show();
 
-public Q_SLOTS:
+private:
     void showCustomMessage();
 };
 
