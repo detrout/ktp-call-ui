@@ -473,7 +473,7 @@ void CallWindow::setupActions()
 
 
     //TODO Ekaitz.
-    d->sendScreenAction = new KToggleAction(i18nc("@action", "Send Screen"), this);
+    d->sendScreenAction = new KToggleAction(i18nc("@action", "Send screen"), this);
     d->sendScreenAction->setEnabled(false); //will be enabled later
     connect(d->sendScreenAction, SIGNAL(toggled(bool)), SLOT(selectScreen(bool)));
     actionCollection()->addAction("sendScreen", d->sendScreenAction);
