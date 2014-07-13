@@ -19,12 +19,6 @@
 #define SELECTIONWINDOW_H
 #include <QMainWindow>
 #include <QtGui>
-
-
-#include <QtGui/QWidget>
-#include <QDesktopWidget>
-#include <QApplication>
-#include <QPixmap>
 #include <QRubberBand>
 #include <QMouseEvent>
 #include <QPoint>

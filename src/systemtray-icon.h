@@ -19,6 +19,7 @@
 #define SYSTEMTRAYICON
 
 #include <KStatusNotifierItem>
+#include <KMenu>
 #include <KLocalizedString>
 
 //! Manages the System Tray Icon of the application. \a Ekaitz.

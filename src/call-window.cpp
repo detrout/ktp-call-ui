@@ -429,7 +429,6 @@ void CallWindow::setupActions()
     d->restoreAction= new KAction(i18nc("@action", "Restore window"), this);
     d->restoreAction->setEnabled(true);
     connect(d->restoreAction, SIGNAL(triggered(bool)), this, SLOT(showWithSystemTray()));
-    actionCollection()->addAction("restore", d->restoreAction);
 
     //TODO implement this feature
     d->sendVideoAction = new KToggleAction(i18nc("@action", "Send video"), this);
@@ -692,7 +691,7 @@ void CallWindow::setupQmlUi()
     setCentralWidget(d->qmlUi);
 }
 
-//TODO
+//TODO Ekaitz
 void CallWindow::selectScreen(bool checked)
 {
     QRect rect(0,0,0,0);
